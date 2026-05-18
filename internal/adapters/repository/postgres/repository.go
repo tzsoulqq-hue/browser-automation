@@ -56,19 +56,15 @@ func (r *Repository) CreateSession(ctx context.Context, session *core.Session) e
 	defer cancel()
 	_, err = r.pool.Exec(ctx, `
 		insert into browser_automation_sessions (
-			session_id, request_id, status, labels, data, lease_token, lease_owner,
-			lease_expires_at, created_at, updated_at, expires_at
+			session_id, request_id, status, labels, data, created_at, updated_at, expires_at
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		values ($1, $2, $3, $4, $5, $6, $7, $8)
 	`,
 		session.GetSessionId(),
 		nullableString(session.GetRequestId()),
 		int32(session.GetStatus()),
 		labels,
 		data,
-		session.GetLease().GetLeaseToken(),
-		session.GetLease().GetOwner(),
-		nullableTimestampTime(session.GetLease().GetExpiresAt()),
 		timestampTime(session.GetCreatedAt()),
 		timestampTime(session.GetUpdatedAt()),
 		nullableTimestampTime(session.GetExpiresAt()),
@@ -104,11 +100,8 @@ func (r *Repository) UpdateSession(ctx context.Context, session *core.Session) e
 		    status = $3,
 		    labels = $4,
 		    data = $5,
-		    lease_token = $6,
-		    lease_owner = $7,
-		    lease_expires_at = $8,
-		    updated_at = $9,
-		    expires_at = $10
+		    updated_at = $6,
+		    expires_at = $7
 		where session_id = $1
 	`,
 		session.GetSessionId(),
@@ -116,9 +109,6 @@ func (r *Repository) UpdateSession(ctx context.Context, session *core.Session) e
 		int32(session.GetStatus()),
 		labels,
 		data,
-		session.GetLease().GetLeaseToken(),
-		session.GetLease().GetOwner(),
-		nullableTimestampTime(session.GetLease().GetExpiresAt()),
 		timestampTime(session.GetUpdatedAt()),
 		nullableTimestampTime(session.GetExpiresAt()),
 	)
@@ -129,100 +119,6 @@ func (r *Repository) UpdateSession(ctx context.Context, session *core.Session) e
 		return core.NewError(core.CodeSessionNotFound, "browser session not found", false)
 	}
 	return nil
-}
-
-func (r *Repository) AcquireSessionLease(ctx context.Context, sessionID, owner, leaseToken string, now time.Time, ttl time.Duration) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if owner == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease owner is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	if ttl <= 0 {
-		return nil, core.NewError(core.CodeValidationFailed, "lease ttl must be positive", false)
-	}
-	ctx, cancel := r.context(ctx)
-	defer cancel()
-	return r.withSessionLock(ctx, sessionID, func(tx pgx.Tx, session *core.Session) (*core.Session, error) {
-		if session.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_RUNNING {
-			return nil, core.NewError(core.CodeSessionFinalized, "browser session is not running", false)
-		}
-		if lease := session.GetLease(); lease != nil && now.Before(lease.GetExpiresAt().AsTime()) {
-			return nil, core.NewError(core.CodeCapacityUnavailable, "browser session lease is active", true)
-		}
-		session.Lease = &browserautomationv1.BrowserSessionLease{
-			Owner:      owner,
-			LeaseToken: leaseToken,
-			AcquiredAt: timestamppb.New(now),
-			ExpiresAt:  timestamppb.New(now.Add(ttl)),
-		}
-		session.UpdatedAt = timestamppb.New(now)
-		if err := r.updateSessionInTx(ctx, tx, session); err != nil {
-			return nil, err
-		}
-		return proto.Clone(session).(*core.Session), nil
-	})
-}
-
-func (r *Repository) RenewSessionLease(ctx context.Context, sessionID, leaseToken string, now time.Time, ttl time.Duration) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	if ttl <= 0 {
-		return nil, core.NewError(core.CodeValidationFailed, "lease ttl must be positive", false)
-	}
-	ctx, cancel := r.context(ctx)
-	defer cancel()
-	return r.withSessionLock(ctx, sessionID, func(tx pgx.Tx, session *core.Session) (*core.Session, error) {
-		lease := session.GetLease()
-		if lease == nil || lease.GetLeaseToken() != leaseToken {
-			return nil, core.NewError(core.CodeSessionFinalized, "browser session lease token is invalid", false)
-		}
-		if !now.Before(lease.GetExpiresAt().AsTime()) {
-			return nil, core.NewError(core.CodeSessionFinalized, "browser session lease expired", true)
-		}
-		session.Lease.ExpiresAt = timestamppb.New(now.Add(ttl))
-		session.UpdatedAt = timestamppb.New(now)
-		if err := r.updateSessionInTx(ctx, tx, session); err != nil {
-			return nil, err
-		}
-		return proto.Clone(session).(*core.Session), nil
-	})
-}
-
-func (r *Repository) ReleaseSessionLease(ctx context.Context, sessionID, leaseToken, reason string, now time.Time) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	ctx, cancel := r.context(ctx)
-	defer cancel()
-	return r.withSessionLock(ctx, sessionID, func(tx pgx.Tx, session *core.Session) (*core.Session, error) {
-		lease := session.GetLease()
-		if lease == nil || lease.GetLeaseToken() != leaseToken {
-			return nil, core.NewError(core.CodeSessionFinalized, "browser session lease token is invalid", false)
-		}
-		session.Lease = nil
-		session.UpdatedAt = timestamppb.New(now)
-		if reason != "" {
-			if session.Labels == nil {
-				session.Labels = make(map[string]string)
-			}
-			session.Labels["lease_release_reason"] = reason
-		}
-		if err := r.updateSessionInTx(ctx, tx, session); err != nil {
-			return nil, err
-		}
-		return proto.Clone(session).(*core.Session), nil
-	})
 }
 
 func (r *Repository) CreateTask(ctx context.Context, task *core.Task) error {
@@ -415,74 +311,6 @@ func (r *Repository) getTask(ctx context.Context, where string, value string) (*
 		return nil, err
 	}
 	return r.decodeTask(data)
-}
-
-func (r *Repository) withSessionLock(ctx context.Context, sessionID string, fn func(pgx.Tx, *core.Session) (*core.Session, error)) (*core.Session, error) {
-	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-
-	var data []byte
-	err = tx.QueryRow(ctx, `
-		select data
-		from browser_automation_sessions
-		where session_id = $1
-		for update
-	`, sessionID).Scan(&data)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, core.NewError(core.CodeSessionNotFound, "browser session not found", false)
-	}
-	if err != nil {
-		return nil, err
-	}
-	session, err := r.decodeSession(data)
-	if err != nil {
-		return nil, err
-	}
-	next, err := fn(tx, session)
-	if err != nil {
-		return nil, err
-	}
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-	return next, nil
-}
-
-func (r *Repository) updateSessionInTx(ctx context.Context, tx pgx.Tx, session *core.Session) error {
-	data, err := r.encode(session)
-	if err != nil {
-		return err
-	}
-	labels, err := jsonMap(session.GetLabels())
-	if err != nil {
-		return err
-	}
-	_, err = tx.Exec(ctx, `
-		update browser_automation_sessions
-		set status = $2,
-		    labels = $3,
-		    data = $4,
-		    lease_token = $5,
-		    lease_owner = $6,
-		    lease_expires_at = $7,
-		    updated_at = $8,
-		    expires_at = $9
-		where session_id = $1
-	`,
-		session.GetSessionId(),
-		int32(session.GetStatus()),
-		labels,
-		data,
-		session.GetLease().GetLeaseToken(),
-		session.GetLease().GetOwner(),
-		nullableTimestampTime(session.GetLease().GetExpiresAt()),
-		timestampTime(session.GetUpdatedAt()),
-		nullableTimestampTime(session.GetExpiresAt()),
-	)
-	return err
 }
 
 func (r *Repository) encode(message proto.Message) ([]byte, error) {

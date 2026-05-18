@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/byte-v-forge/browser-automation/internal/core"
-	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -123,103 +122,6 @@ func (s *MemoryStore) UpdateSession(_ context.Context, session *core.Session) er
 		s.sessionRequestID[session.GetRequestId()] = session.GetSessionId()
 	}
 	return nil
-}
-
-func (s *MemoryStore) AcquireSessionLease(_ context.Context, sessionID, owner, leaseToken string, now time.Time, ttl time.Duration) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if owner == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease owner is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	if ttl <= 0 {
-		return nil, core.NewError(core.CodeValidationFailed, "lease ttl must be positive", false)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	session, ok := s.sessions[sessionID]
-	if !ok {
-		return nil, core.NewError(core.CodeSessionNotFound, "browser session not found", false)
-	}
-	if session.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_RUNNING {
-		return nil, core.NewError(core.CodeSessionFinalized, "browser session is not running", false)
-	}
-	if lease := session.GetLease(); lease != nil && now.Before(lease.GetExpiresAt().AsTime()) {
-		return nil, core.NewError(core.CodeCapacityUnavailable, "browser session lease is active", true)
-	}
-	session = cloneSession(session)
-	session.Lease = &browserautomationv1.BrowserSessionLease{
-		Owner:      owner,
-		LeaseToken: leaseToken,
-		AcquiredAt: timestamppb.New(now),
-		ExpiresAt:  timestamppb.New(now.Add(ttl)),
-	}
-	session.UpdatedAt = timestamppb.New(now)
-	s.sessions[sessionID] = cloneSession(session)
-	return cloneSession(session), nil
-}
-
-func (s *MemoryStore) RenewSessionLease(_ context.Context, sessionID, leaseToken string, now time.Time, ttl time.Duration) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	if ttl <= 0 {
-		return nil, core.NewError(core.CodeValidationFailed, "lease ttl must be positive", false)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	session, ok := s.sessions[sessionID]
-	if !ok {
-		return nil, core.NewError(core.CodeSessionNotFound, "browser session not found", false)
-	}
-	lease := session.GetLease()
-	if lease == nil || lease.GetLeaseToken() != leaseToken {
-		return nil, core.NewError(core.CodeSessionFinalized, "browser session lease token is invalid", false)
-	}
-	if !now.Before(lease.GetExpiresAt().AsTime()) {
-		return nil, core.NewError(core.CodeSessionFinalized, "browser session lease expired", true)
-	}
-	session = cloneSession(session)
-	session.Lease.ExpiresAt = timestamppb.New(now.Add(ttl))
-	session.UpdatedAt = timestamppb.New(now)
-	s.sessions[sessionID] = cloneSession(session)
-	return cloneSession(session), nil
-}
-
-func (s *MemoryStore) ReleaseSessionLease(_ context.Context, sessionID, leaseToken, reason string, now time.Time) (*core.Session, error) {
-	if sessionID == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "session_id is required", false)
-	}
-	if leaseToken == "" {
-		return nil, core.NewError(core.CodeValidationFailed, "lease token is required", false)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	session, ok := s.sessions[sessionID]
-	if !ok {
-		return nil, core.NewError(core.CodeSessionNotFound, "browser session not found", false)
-	}
-	lease := session.GetLease()
-	if lease == nil || lease.GetLeaseToken() != leaseToken {
-		return nil, core.NewError(core.CodeSessionFinalized, "browser session lease token is invalid", false)
-	}
-	session = cloneSession(session)
-	session.Lease = nil
-	session.UpdatedAt = timestamppb.New(now)
-	if reason != "" {
-		if session.Labels == nil {
-			session.Labels = make(map[string]string)
-		}
-		session.Labels["lease_release_reason"] = reason
-	}
-	s.sessions[sessionID] = cloneSession(session)
-	return cloneSession(session), nil
 }
 
 func (s *MemoryStore) CreateTask(_ context.Context, task *core.Task) error {

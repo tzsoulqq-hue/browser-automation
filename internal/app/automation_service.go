@@ -12,11 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const (
-	defaultSessionTTL      = 30 * time.Minute
-	defaultSessionLeaseTTL = 2 * time.Minute
-	maxSessionLeaseTTL     = 15 * time.Minute
-)
+const defaultSessionTTL = 30 * time.Minute
 
 type AutomationService struct {
 	store   core.Store
@@ -100,30 +96,6 @@ func (s *AutomationService) GetBrowserSession(ctx context.Context, sessionID str
 	return s.expireSessionIfNeeded(ctx, session)
 }
 
-func (s *AutomationService) AcquireBrowserSessionLease(ctx context.Context, requestID, sessionID, owner string, ttl time.Duration) (*core.Session, error) {
-	ttl, err := normalizeLeaseTTL(ttl)
-	if err != nil {
-		return nil, err
-	}
-	leaseToken := requestID
-	if leaseToken == "" {
-		leaseToken = s.ids.NewID("brlease_")
-	}
-	return s.store.AcquireSessionLease(ctx, sessionID, owner, leaseToken, s.clock.Now(), ttl)
-}
-
-func (s *AutomationService) RenewBrowserSessionLease(ctx context.Context, sessionID, leaseToken string, ttl time.Duration) (*core.Session, error) {
-	ttl, err := normalizeLeaseTTL(ttl)
-	if err != nil {
-		return nil, err
-	}
-	return s.store.RenewSessionLease(ctx, sessionID, leaseToken, s.clock.Now(), ttl)
-}
-
-func (s *AutomationService) ReleaseBrowserSessionLease(ctx context.Context, sessionID, leaseToken, reason string) (*core.Session, error) {
-	return s.store.ReleaseSessionLease(ctx, sessionID, leaseToken, reason, s.clock.Now())
-}
-
 func (s *AutomationService) StopBrowserSession(ctx context.Context, sessionID, reason string) (*core.Session, error) {
 	session, err := s.store.GetSession(ctx, sessionID)
 	if err != nil {
@@ -181,9 +153,6 @@ func (s *AutomationService) StartBrowserTask(ctx context.Context, requestID stri
 	if session.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_RUNNING {
 		return nil, core.NewError(core.CodeSessionFinalized, "browser session is not running", false)
 	}
-	if err := s.requireActiveLease(session, input.GetSessionLeaseToken()); err != nil {
-		return nil, err
-	}
 	now := s.clock.Now()
 	if requestID == "" {
 		requestID = s.ids.NewID("req_")
@@ -240,9 +209,6 @@ func (s *AutomationService) ExecuteBrowserCommands(ctx context.Context, requestI
 	}
 	if session.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_RUNNING {
 		return nil, core.NewError(core.CodeSessionFinalized, "browser session is not running", false)
-	}
-	if err := s.requireActiveLease(session, input.GetSessionLeaseToken()); err != nil {
-		return nil, err
 	}
 
 	now := s.clock.Now()
@@ -346,9 +312,6 @@ func validateTaskInput(input *core.TaskInput) error {
 	if input.GetTaskKey() == "" {
 		return core.NewError(core.CodeValidationFailed, "task_key is required", false)
 	}
-	if input.GetSessionLeaseToken() == "" {
-		return core.NewError(core.CodeValidationFailed, "session_lease_token is required", false)
-	}
 	if duration(input.GetTimeout()) < 0 {
 		return core.NewError(core.CodeValidationFailed, "timeout cannot be negative", false)
 	}
@@ -425,30 +388,6 @@ func hasSelector(selector *browserautomationv1.BrowserSelector, group *browserau
 		}
 	}
 	return false
-}
-
-func (s *AutomationService) requireActiveLease(session *core.Session, leaseToken string) error {
-	lease := session.GetLease()
-	if lease == nil || lease.GetLeaseToken() != leaseToken {
-		return core.NewError(core.CodeSessionFinalized, "browser session lease token is invalid", false)
-	}
-	if !s.clock.Now().Before(lease.GetExpiresAt().AsTime()) {
-		return core.NewError(core.CodeSessionFinalized, "browser session lease expired", true)
-	}
-	return nil
-}
-
-func normalizeLeaseTTL(ttl time.Duration) (time.Duration, error) {
-	if ttl < 0 {
-		return 0, core.NewError(core.CodeValidationFailed, "lease ttl cannot be negative", false)
-	}
-	if ttl == 0 {
-		return defaultSessionLeaseTTL, nil
-	}
-	if ttl > maxSessionLeaseTTL {
-		return 0, core.NewError(core.CodeValidationFailed, "lease ttl exceeds maximum", false)
-	}
-	return ttl, nil
 }
 
 func isSessionNotFound(err error) bool {

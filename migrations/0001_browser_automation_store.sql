@@ -4,9 +4,6 @@ create table if not exists browser_automation_sessions (
   status integer not null,
   labels jsonb not null default '{}'::jsonb,
   data jsonb not null,
-  lease_token text,
-  lease_owner text,
-  lease_expires_at timestamptz,
   created_at timestamptz not null,
   updated_at timestamptz not null,
   expires_at timestamptz
@@ -18,10 +15,6 @@ create unique index if not exists browser_automation_sessions_request_id_idx
 
 create index if not exists browser_automation_sessions_status_updated_idx
   on browser_automation_sessions(status, updated_at desc, session_id asc);
-
-create index if not exists browser_automation_sessions_lease_idx
-  on browser_automation_sessions(lease_expires_at, session_id)
-  where lease_token is not null;
 
 create index if not exists browser_automation_sessions_labels_idx
   on browser_automation_sessions using gin(labels);
