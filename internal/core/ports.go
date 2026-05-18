@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"time"
+
+	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
 )
 
 type Clock interface {
@@ -33,6 +35,10 @@ type Runtime interface {
 	StopSession(ctx context.Context, session *Session, reason string) error
 	EnqueueTask(ctx context.Context, task *Task) error
 	ExecuteTask(ctx context.Context, task *Task) (TaskExecutionResult, error)
+}
+
+type RuntimeProfileDefaults interface {
+	DefaultBrowserKind() browserautomationv1.BrowserKind
 }
 
 type TaskExecutionResult struct {

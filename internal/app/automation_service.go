@@ -50,7 +50,7 @@ func (s *AutomationService) StartBrowserSession(ctx context.Context, requestID s
 	}
 	profile = cloneProfile(profile)
 	if profile.GetBrowserKind() == browserautomationv1.BrowserKind_BROWSER_KIND_UNSPECIFIED {
-		profile.BrowserKind = browserautomationv1.BrowserKind_BROWSER_KIND_CHROMIUM
+		profile.BrowserKind = defaultBrowserKind(s.runtime)
 	}
 	if ttl < 0 {
 		return nil, core.NewError(core.CodeValidationFailed, "ttl cannot be negative", false)
@@ -465,6 +465,16 @@ func cloneTaskInput(input *core.TaskInput) *core.TaskInput {
 		return nil
 	}
 	return proto.Clone(input).(*browserautomationv1.BrowserTaskInput)
+}
+
+func defaultBrowserKind(runtime core.Runtime) browserautomationv1.BrowserKind {
+	if defaults, ok := runtime.(core.RuntimeProfileDefaults); ok {
+		kind := defaults.DefaultBrowserKind()
+		if kind != browserautomationv1.BrowserKind_BROWSER_KIND_UNSPECIFIED {
+			return kind
+		}
+	}
+	return browserautomationv1.BrowserKind_BROWSER_KIND_CHROMIUM
 }
 
 func timestamp(value time.Time) *timestamppb.Timestamp {

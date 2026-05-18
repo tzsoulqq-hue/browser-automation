@@ -31,30 +31,30 @@ func (s *sequenceID) NewID(_ string) string {
 }
 
 type recordingRuntime struct {
-	started  []core.Session
-	stopped  []core.Session
-	tasks    []core.Task
-	executed []core.Task
-	err      error
+	startedSessionIDs []string
+	stoppedSessionIDs []string
+	taskIDs           []string
+	executedTaskIDs   []string
+	err               error
 }
 
 func (r *recordingRuntime) StartSession(_ context.Context, session *core.Session) error {
-	r.started = append(r.started, *session)
+	r.startedSessionIDs = append(r.startedSessionIDs, session.GetSessionId())
 	return r.err
 }
 
 func (r *recordingRuntime) StopSession(_ context.Context, session *core.Session, _ string) error {
-	r.stopped = append(r.stopped, *session)
+	r.stoppedSessionIDs = append(r.stoppedSessionIDs, session.GetSessionId())
 	return r.err
 }
 
 func (r *recordingRuntime) EnqueueTask(_ context.Context, task *core.Task) error {
-	r.tasks = append(r.tasks, *task)
+	r.taskIDs = append(r.taskIDs, task.GetTaskId())
 	return r.err
 }
 
 func (r *recordingRuntime) ExecuteTask(_ context.Context, task *core.Task) (core.TaskExecutionResult, error) {
-	r.executed = append(r.executed, *task)
+	r.executedTaskIDs = append(r.executedTaskIDs, task.GetTaskId())
 	return core.TaskExecutionResult{
 		Results: []*core.CommandResult{{
 			CommandId:   task.GetInput().GetCommands()[0].GetCommandId(),
@@ -89,8 +89,8 @@ func TestStartBrowserSessionCreatesRunningSession(t *testing.T) {
 	if session.GetExpiresAt() == nil || session.GetStartedAt() == nil {
 		t.Fatal("timestamps should be filled")
 	}
-	if len(runtime.started) != 1 || runtime.started[0].GetSessionId() != session.GetSessionId() {
-		t.Fatalf("runtime started = %#v, want one session", runtime.started)
+	if len(runtime.startedSessionIDs) != 1 || runtime.startedSessionIDs[0] != session.GetSessionId() {
+		t.Fatalf("runtime started = %#v, want one session", runtime.startedSessionIDs)
 	}
 }
 
@@ -110,8 +110,8 @@ func TestStartBrowserSessionIsIdempotentByRequestID(t *testing.T) {
 	if first.GetSessionId() != second.GetSessionId() {
 		t.Fatalf("second session id = %q, want %q", second.GetSessionId(), first.GetSessionId())
 	}
-	if len(runtime.started) != 1 {
-		t.Fatalf("runtime starts = %d, want 1", len(runtime.started))
+	if len(runtime.startedSessionIDs) != 1 {
+		t.Fatalf("runtime starts = %d, want 1", len(runtime.startedSessionIDs))
 	}
 }
 
@@ -161,8 +161,8 @@ func TestStartTaskStopSessionAndListTasks(t *testing.T) {
 	if task.GetTaskId() != "task-1" || task.GetStatus() != browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_QUEUED {
 		t.Fatalf("task = %#v, want queued task-1", task)
 	}
-	if len(runtime.tasks) != 1 || runtime.tasks[0].GetTaskId() != task.GetTaskId() {
-		t.Fatalf("runtime tasks = %#v, want one task", runtime.tasks)
+	if len(runtime.taskIDs) != 1 || runtime.taskIDs[0] != task.GetTaskId() {
+		t.Fatalf("runtime tasks = %#v, want one task", runtime.taskIDs)
 	}
 
 	result, err := service.ListBrowserTasks(ctx, &core.TaskFilter{
@@ -224,8 +224,8 @@ func TestExecuteBrowserCommandsRunsRuntimeAndStoresResults(t *testing.T) {
 	if task.GetInput().GetTaskKey() != "browser.commands" {
 		t.Fatalf("task key = %q, want browser.commands", task.GetInput().GetTaskKey())
 	}
-	if len(runtime.executed) != 1 || runtime.executed[0].GetTaskId() != task.GetTaskId() {
-		t.Fatalf("runtime executed = %#v, want one task", runtime.executed)
+	if len(runtime.executedTaskIDs) != 1 || runtime.executedTaskIDs[0] != task.GetTaskId() {
+		t.Fatalf("runtime executed = %#v, want one task", runtime.executedTaskIDs)
 	}
 	stored, err := service.GetBrowserTask(ctx, task.GetTaskId())
 	if err != nil {
