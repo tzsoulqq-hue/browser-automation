@@ -2,7 +2,7 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-INTERNAL_CONTRACTS_ROOT="$ROOT/../internal-contracts"
+INTERNAL_CONTRACTS_ROOT="${INTERNAL_CONTRACTS_ROOT:-$ROOT/../internal-contracts}"
 PATH="$(go env GOPATH)/bin:$PATH"
 
 rm -rf "$ROOT/gen/go"
