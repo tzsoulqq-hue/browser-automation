@@ -12,6 +12,7 @@
 - 领域模型和端口：`internal/core`
 - 内存 store：`internal/app`
 - PostgreSQL store：`internal/adapters/repository/postgres`
+- Camoufox runtime adapter：`internal/adapters/runtime/camoufox`
 - 数据迁移：`migrations/0001_browser_automation_store.sql`
 - 内部契约：`proto/byte/v/forge/browserautomation/internal/v1/browser_automation_internal.proto`
 - 同步命令执行：`ExecuteBrowserCommands`，支持 navigate、click、fill、press、wait、extract text、screenshot、upload file、evaluate 等 proto 化命令。
@@ -58,6 +59,30 @@ psql "$BROWSER_AUTOMATION_POSTGRES_DSN" -f migrations/0001_browser_automation_st
 
 PostgreSQL store 会持久化 session、task 和 session lease。lease 的 acquire、renew、release 通过同一条 session 记录的事务更新完成。
 
+## Camoufox Runtime
+
+Camoufox adapter 通过 Python 官方生态启动 remote websocket server，并用常驻 worker 连接 Playwright Firefox endpoint 执行 proto 命令。
+
+参考文档：[Camoufox Remote Server](https://camoufox.com/python/remote-server/)、[Camoufox Usage](https://camoufox.com/python/usage/)、[Playwright Python BrowserType.connect](https://playwright.dev/python/docs/api/class-browsertype#browser-type-connect)。
+
+运行环境需要安装 Camoufox 和 Playwright Python 包：
+
+```sh
+python3 -m pip install -U camoufox playwright
+```
+
+Go 侧构造 runtime：
+
+```go
+runtime, err := camoufox.NewRuntime(camoufox.Config{
+	PythonPath:   "python3",
+	ArtifactsDir: "/tmp/browser-automation-artifacts",
+	Headless:    true,
+})
+```
+
+`BrowserProfile` 会映射到 Camoufox / Playwright 运行参数：`locale`、`timezone`、`user_agent`、`viewport`、`device_scale_factor`。`labels` 可设置 `camoufox.os`、`camoufox.geoip`、`camoufox.headless`、`camoufox.block_images`、`camoufox.block_webrtc`、`camoufox.block_webgl`、`camoufox.disable_coop`、`camoufox.main_world_eval`、`camoufox.enable_cache`、`camoufox.humanize`。
+
 ## 迁移范围
 
 - 通用 session/task/profile/artifact 生命周期进入本仓。
@@ -66,6 +91,5 @@ PostgreSQL store 会持久化 session、task 和 session lease。lease 的 acqui
 
 ## 后续建设
 
-- Playwright/CDP/remote-browser/Camoufox sidecar runtime adapter。
 - artifact 对象存储 adapter。
 - 进程入口、worker bootstrap 和生命周期事件发布。
