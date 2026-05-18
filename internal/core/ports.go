@@ -20,9 +20,6 @@ type Store interface {
 	GetSession(ctx context.Context, sessionID string) (*Session, error)
 	GetSessionByRequestID(ctx context.Context, requestID string) (*Session, error)
 	UpdateSession(ctx context.Context, session *Session) error
-	AcquireSessionLease(ctx context.Context, sessionID, owner, leaseToken string, now time.Time, ttl time.Duration) (*Session, error)
-	RenewSessionLease(ctx context.Context, sessionID, leaseToken string, now time.Time, ttl time.Duration) (*Session, error)
-	ReleaseSessionLease(ctx context.Context, sessionID, leaseToken, reason string, now time.Time) (*Session, error)
 	CreateTask(ctx context.Context, task *Task) error
 	GetTask(ctx context.Context, taskID string) (*Task, error)
 	GetTaskByRequestID(ctx context.Context, requestID string) (*Task, error)

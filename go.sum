@@ -1,5 +1,5 @@
-github.com/byte-v-forge/contracts-go v0.12.1 h1:dltUHsH9aB5ufLeBinP3YEiNvoAzFqTloLvpK0VjfOI=
-github.com/byte-v-forge/contracts-go v0.12.1/go.mod h1:y2YP2d0SuI66CWYxdkJx9FUmIJYXnAJXtGJiJGSip8E=
+github.com/byte-v-forge/contracts-go v0.13.0 h1:iLSoEZzopI2xTRKnL+ONyCrhN+2ieyHjFbdnG/a9enk=
+github.com/byte-v-forge/contracts-go v0.13.0/go.mod h1:y2YP2d0SuI66CWYxdkJx9FUmIJYXnAJXtGJiJGSip8E=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

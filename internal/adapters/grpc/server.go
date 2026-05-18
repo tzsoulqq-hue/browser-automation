@@ -35,30 +35,6 @@ func (s *AutomationServer) GetBrowserSession(ctx context.Context, request *brows
 	return &browserautomationv1.GetBrowserSessionResponse{Session: session}, nil
 }
 
-func (s *AutomationServer) AcquireBrowserSessionLease(ctx context.Context, request *browserautomationv1.AcquireBrowserSessionLeaseRequest) (*browserautomationv1.AcquireBrowserSessionLeaseResponse, error) {
-	session, err := s.service.AcquireBrowserSessionLease(ctx, request.GetRequestId(), request.GetSessionId(), request.GetOwner(), protoDuration(request.GetTtl()))
-	if err != nil {
-		return &browserautomationv1.AcquireBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
-	}
-	return &browserautomationv1.AcquireBrowserSessionLeaseResponse{Session: session}, nil
-}
-
-func (s *AutomationServer) RenewBrowserSessionLease(ctx context.Context, request *browserautomationv1.RenewBrowserSessionLeaseRequest) (*browserautomationv1.RenewBrowserSessionLeaseResponse, error) {
-	session, err := s.service.RenewBrowserSessionLease(ctx, request.GetSessionId(), request.GetLeaseToken(), protoDuration(request.GetTtl()))
-	if err != nil {
-		return &browserautomationv1.RenewBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
-	}
-	return &browserautomationv1.RenewBrowserSessionLeaseResponse{Session: session}, nil
-}
-
-func (s *AutomationServer) ReleaseBrowserSessionLease(ctx context.Context, request *browserautomationv1.ReleaseBrowserSessionLeaseRequest) (*browserautomationv1.ReleaseBrowserSessionLeaseResponse, error) {
-	session, err := s.service.ReleaseBrowserSessionLease(ctx, request.GetSessionId(), request.GetLeaseToken(), request.GetReason())
-	if err != nil {
-		return &browserautomationv1.ReleaseBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
-	}
-	return &browserautomationv1.ReleaseBrowserSessionLeaseResponse{Session: session}, nil
-}
-
 func (s *AutomationServer) StopBrowserSession(ctx context.Context, request *browserautomationv1.StopBrowserSessionRequest) (*browserautomationv1.StopBrowserSessionResponse, error) {
 	session, err := s.service.StopBrowserSession(ctx, request.GetSessionId(), request.GetReason())
 	if err != nil {

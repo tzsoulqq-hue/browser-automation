@@ -127,7 +127,7 @@ func TestStartBrowserTaskRequiresRunningSession(t *testing.T) {
 	}}, nil)
 	service := newTestService(store, &recordingRuntime{}, []string{"task-1"})
 
-	_, err := service.StartBrowserTask(ctx, "task-req-1", &browserautomationv1.BrowserTaskInput{SessionId: "session-1", TaskKey: "login", SessionLeaseToken: "lease-1"})
+	_, err := service.StartBrowserTask(ctx, "task-req-1", &browserautomationv1.BrowserTaskInput{SessionId: "session-1", TaskKey: "login"})
 	if err == nil {
 		t.Fatal("StartBrowserTask() expected error")
 	}
@@ -146,16 +146,11 @@ func TestStartTaskStopSessionAndListTasks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("StartBrowserSession() error = %v", err)
 	}
-	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
-	if err != nil {
-		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
-	}
 	task, err := service.StartBrowserTask(ctx, "task-req-1", &core.TaskInput{
-		SessionId:         session.GetSessionId(),
-		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
-		TaskKey:           "register",
-		ScenarioKey:       "outlook",
-		Labels:            map[string]string{"batch": "a"},
+		SessionId:   session.GetSessionId(),
+		TaskKey:     "register",
+		ScenarioKey: "outlook",
+		Labels:      map[string]string{"batch": "a"},
 	})
 	if err != nil {
 		t.Fatalf("StartBrowserTask() error = %v", err)
@@ -199,13 +194,8 @@ func TestExecuteBrowserCommandsRunsRuntimeAndStoresResults(t *testing.T) {
 	if err != nil {
 		t.Fatalf("StartBrowserSession() error = %v", err)
 	}
-	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
-	if err != nil {
-		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
-	}
 	task, err := service.ExecuteBrowserCommands(ctx, "command-req-1", &core.TaskInput{
-		SessionId:         session.GetSessionId(),
-		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
+		SessionId: session.GetSessionId(),
 		Commands: []*browserautomationv1.BrowserCommand{{
 			CommandId:  "cmd-1",
 			CommandKey: "navigate",
@@ -247,13 +237,8 @@ func TestExecuteBrowserCommandsAcceptsSelectorGroupAndSelectOption(t *testing.T)
 	if err != nil {
 		t.Fatalf("StartBrowserSession() error = %v", err)
 	}
-	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
-	if err != nil {
-		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
-	}
 	_, err = service.ExecuteBrowserCommands(ctx, "command-req-1", &core.TaskInput{
-		SessionId:         session.GetSessionId(),
-		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
+		SessionId: session.GetSessionId(),
 		Commands: []*browserautomationv1.BrowserCommand{{
 			CommandId:       "cmd-1",
 			CommandKey:      "select_month",
