@@ -2,10 +2,10 @@ module github.com/byte-v-forge/browser-automation
 
 go 1.26
 
-replace github.com/byte-v-forge/contracts => ../contracts
+replace github.com/byte-v-forge/internal-contracts-go => ../internal-contracts-go
 
 require (
-	github.com/byte-v-forge/contracts v0.0.0-00010101000000-000000000000
+	github.com/byte-v-forge/internal-contracts-go v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/byte-v-forge/browser-automation/internal/app"
-	browserautomationv1 "github.com/byte-v-forge/contracts/gen/go/byte/v/forge/contracts/browserautomation/v1"
+	browserautomationv1 "github.com/byte-v-forge/internal-contracts-go/byte/v/forge/internalcontracts/browserautomation/v1"
 )
 
 type AutomationServer struct {

@@ -15,7 +15,7 @@
 
 ## 契约边界
 
-- 公共 session/task/artifact 契约定义在 `contracts/browserautomation`。
+- 私有 session/task/artifact 契约定义在 `internal-contracts/browserautomation`。
 - 本仓不承载 GPT、Outlook 或其他站点注册流程，只提供通用浏览器执行能力。
 - Playwright、CDP 或远程浏览器 runtime 细节留在内部 adapter，不进入公共契约。
 - cookie、token、账号密码、验证码、storage state、代理凭据和可复用会话材料不得明文进入公共契约或日志，只能使用 secret ref 或 artifact ref。

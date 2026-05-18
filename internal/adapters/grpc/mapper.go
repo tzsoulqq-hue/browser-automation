@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/byte-v-forge/browser-automation/internal/core"
-	browserautomationv1 "github.com/byte-v-forge/contracts/gen/go/byte/v/forge/contracts/browserautomation/v1"
+	browserautomationv1 "github.com/byte-v-forge/internal-contracts-go/byte/v/forge/internalcontracts/browserautomation/v1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
