@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
+	browserautomationv1 "github.com/byte-v-forge/browser-automation/gen/go/byte/v/forge/contracts/browserautomation/v1"
 	"github.com/byte-v-forge/browser-automation/internal/core"
-	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -328,6 +328,9 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 			if operation.Navigate.GetUrl() == "" {
 				return core.NewError(core.CodeValidationFailed, "navigate url is required", false)
 			}
+		case *browserautomationv1.BrowserCommand_Reload:
+		case *browserautomationv1.BrowserCommand_GoBack:
+		case *browserautomationv1.BrowserCommand_GoForward:
 		case *browserautomationv1.BrowserCommand_Click:
 			if !hasSelector(operation.Click.GetSelector(), operation.Click.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "click selector is required", false)
@@ -336,9 +339,53 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 			if !hasSelector(operation.Fill.GetSelector(), operation.Fill.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "fill selector is required", false)
 			}
+		case *browserautomationv1.BrowserCommand_SetChecked:
+			if !hasSelector(operation.SetChecked.GetSelector(), operation.SetChecked.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "set checked selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_TypeText:
+			if operation.TypeText.GetText() == "" {
+				return core.NewError(core.CodeValidationFailed, "type text is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_Clear:
+			if !hasSelector(operation.Clear.GetSelector(), operation.Clear.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "clear selector is required", false)
+			}
 		case *browserautomationv1.BrowserCommand_Press:
 			if operation.Press.GetKey() == "" {
 				return core.NewError(core.CodeValidationFailed, "press key is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_Focus:
+			if !hasSelector(operation.Focus.GetSelector(), operation.Focus.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "focus selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_Blur:
+			if !hasSelector(operation.Blur.GetSelector(), operation.Blur.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "blur selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_Hover:
+			if !hasSelector(operation.Hover.GetSelector(), operation.Hover.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "hover selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_MouseMove:
+			if operation.MouseMove.GetPoint() == nil && len(operation.MouseMove.GetPath()) == 0 {
+				return core.NewError(core.CodeValidationFailed, "mouse move point or path is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_MouseClick:
+			if operation.MouseClick.GetPoint() == nil {
+				return core.NewError(core.CodeValidationFailed, "mouse click point is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_MouseDown:
+		case *browserautomationv1.BrowserCommand_MouseUp:
+		case *browserautomationv1.BrowserCommand_Drag:
+			source := hasSelector(operation.Drag.GetSourceSelector(), operation.Drag.GetSourceSelectorGroup()) || operation.Drag.GetSourcePoint() != nil
+			target := hasSelector(operation.Drag.GetTargetSelector(), operation.Drag.GetTargetSelectorGroup()) || operation.Drag.GetTargetPoint() != nil
+			if !source || !target {
+				return core.NewError(core.CodeValidationFailed, "drag source and target are required", false)
+			}
+		case *browserautomationv1.BrowserCommand_Scroll:
+			if !hasSelector(operation.Scroll.GetSelector(), operation.Scroll.GetSelectorGroup()) && operation.Scroll.GetDeltaX() == 0 && operation.Scroll.GetDeltaY() == 0 {
+				return core.NewError(core.CodeValidationFailed, "scroll selector or delta is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_WaitForSelector:
 			if !hasSelector(operation.WaitForSelector.GetSelector(), operation.WaitForSelector.GetSelectorGroup()) {
@@ -348,9 +395,34 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 			if operation.WaitForText.GetText() == "" {
 				return core.NewError(core.CodeValidationFailed, "wait text is required", false)
 			}
+		case *browserautomationv1.BrowserCommand_WaitForUrl:
+			if operation.WaitForUrl.GetUrlPattern() == "" {
+				return core.NewError(core.CodeValidationFailed, "wait url pattern is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_WaitForLoadState:
+		case *browserautomationv1.BrowserCommand_WaitForTimeout:
+			if duration(operation.WaitForTimeout.GetDuration()) <= 0 {
+				return core.NewError(core.CodeValidationFailed, "wait timeout duration is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_GetPageState:
 		case *browserautomationv1.BrowserCommand_ExtractText:
 			if !hasSelector(operation.ExtractText.GetSelector(), operation.ExtractText.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "extract selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_CountElements:
+			if !hasSelector(operation.CountElements.GetSelector(), operation.CountElements.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "count elements selector is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_GetAttribute:
+			if !hasSelector(operation.GetAttribute.GetSelector(), operation.GetAttribute.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "get attribute selector is required", false)
+			}
+			if operation.GetAttribute.GetName() == "" {
+				return core.NewError(core.CodeValidationFailed, "get attribute name is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_ExtractElement:
+			if !hasSelector(operation.ExtractElement.GetSelector(), operation.ExtractElement.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "extract element selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Screenshot:
 		case *browserautomationv1.BrowserCommand_UploadFile:
@@ -366,6 +438,10 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 			}
 			if len(operation.SelectOption.GetValues()) == 0 && len(operation.SelectOption.GetLabels()) == 0 && len(operation.SelectOption.GetIndexes()) == 0 {
 				return core.NewError(core.CodeValidationFailed, "select option value, label or index is required", false)
+			}
+		case *browserautomationv1.BrowserCommand_SubmitForm:
+			if !hasSelector(operation.SubmitForm.GetSelector(), operation.SubmitForm.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "submit form selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Evaluate:
 			if operation.Evaluate.GetExpression() == "" {

@@ -3,7 +3,6 @@ module github.com/byte-v-forge/browser-automation
 go 1.26
 
 require (
-	github.com/byte-v-forge/contracts-go v0.13.0
 	github.com/jackc/pgx/v5 v5.9.2
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11

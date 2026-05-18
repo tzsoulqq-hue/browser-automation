@@ -1,0 +1,639 @@
+syntax = "proto3";
+
+package byte.v.forge.contracts.browserautomation.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "ByteVForge.Contracts.BrowserAutomation.V1";
+option go_package = "github.com/byte-v-forge/browser-automation/gen/go/byte/v/forge/contracts/browserautomation/v1;browserautomationv1";
+option java_multiple_files = true;
+option java_outer_classname = "BrowserAutomationProto";
+option java_package = "com.bytevforge.contracts.browserautomation.v1";
+option php_namespace = "ByteVForge\\Contracts\\BrowserAutomation\\V1";
+
+service BrowserAutomationService {
+  rpc StartBrowserSession(StartBrowserSessionRequest) returns (StartBrowserSessionResponse);
+  rpc GetBrowserSession(GetBrowserSessionRequest) returns (GetBrowserSessionResponse);
+  rpc StopBrowserSession(StopBrowserSessionRequest) returns (StopBrowserSessionResponse);
+  rpc StartBrowserTask(StartBrowserTaskRequest) returns (StartBrowserTaskResponse);
+  rpc ExecuteBrowserCommands(ExecuteBrowserCommandsRequest) returns (ExecuteBrowserCommandsResponse);
+  rpc GetBrowserTask(GetBrowserTaskRequest) returns (GetBrowserTaskResponse);
+  rpc ListBrowserTasks(ListBrowserTasksRequest) returns (ListBrowserTasksResponse);
+}
+
+enum BrowserAutomationErrorCode {
+  BROWSER_AUTOMATION_ERROR_CODE_UNSPECIFIED = 0;
+  BROWSER_AUTOMATION_ERROR_CODE_VALIDATION_FAILED = 1;
+  BROWSER_AUTOMATION_ERROR_CODE_SESSION_NOT_FOUND = 2;
+  BROWSER_AUTOMATION_ERROR_CODE_TASK_NOT_FOUND = 3;
+  BROWSER_AUTOMATION_ERROR_CODE_ARTIFACT_NOT_FOUND = 4;
+  BROWSER_AUTOMATION_ERROR_CODE_SESSION_ALREADY_FINALIZED = 5;
+  BROWSER_AUTOMATION_ERROR_CODE_TASK_ALREADY_FINALIZED = 6;
+  BROWSER_AUTOMATION_ERROR_CODE_CAPACITY_UNAVAILABLE = 7;
+  BROWSER_AUTOMATION_ERROR_CODE_BROWSER_UNAVAILABLE = 8;
+  BROWSER_AUTOMATION_ERROR_CODE_PROXY_FAILED = 9;
+  BROWSER_AUTOMATION_ERROR_CODE_NAVIGATION_FAILED = 10;
+  BROWSER_AUTOMATION_ERROR_CODE_SCRIPT_FAILED = 11;
+  BROWSER_AUTOMATION_ERROR_CODE_TIMEOUT = 12;
+  BROWSER_AUTOMATION_ERROR_CODE_UNSUPPORTED_OPERATION = 13;
+  BROWSER_AUTOMATION_ERROR_CODE_INTERNAL = 14;
+}
+
+enum BrowserKind {
+  BROWSER_KIND_UNSPECIFIED = 0;
+  BROWSER_KIND_CHROMIUM = 1;
+  BROWSER_KIND_FIREFOX = 2;
+  BROWSER_KIND_WEBKIT = 3;
+}
+
+enum BrowserSessionStatus {
+  BROWSER_SESSION_STATUS_UNSPECIFIED = 0;
+  BROWSER_SESSION_STATUS_STARTING = 1;
+  BROWSER_SESSION_STATUS_RUNNING = 2;
+  BROWSER_SESSION_STATUS_STOPPING = 3;
+  BROWSER_SESSION_STATUS_STOPPED = 4;
+  BROWSER_SESSION_STATUS_FAILED = 5;
+  BROWSER_SESSION_STATUS_EXPIRED = 6;
+}
+
+enum BrowserTaskStatus {
+  BROWSER_TASK_STATUS_UNSPECIFIED = 0;
+  BROWSER_TASK_STATUS_QUEUED = 1;
+  BROWSER_TASK_STATUS_RUNNING = 2;
+  BROWSER_TASK_STATUS_SUCCEEDED = 3;
+  BROWSER_TASK_STATUS_FAILED = 4;
+  BROWSER_TASK_STATUS_CANCELED = 5;
+  BROWSER_TASK_STATUS_TIMEOUT = 6;
+}
+
+enum BrowserCommandStatus {
+  BROWSER_COMMAND_STATUS_UNSPECIFIED = 0;
+  BROWSER_COMMAND_STATUS_SUCCEEDED = 1;
+  BROWSER_COMMAND_STATUS_FAILED = 2;
+  BROWSER_COMMAND_STATUS_TIMEOUT = 3;
+  BROWSER_COMMAND_STATUS_SKIPPED = 4;
+}
+
+enum BrowserSelectorKind {
+  BROWSER_SELECTOR_KIND_UNSPECIFIED = 0;
+  BROWSER_SELECTOR_KIND_CSS = 1;
+  BROWSER_SELECTOR_KIND_TEXT = 2;
+  BROWSER_SELECTOR_KIND_ROLE = 3;
+  BROWSER_SELECTOR_KIND_LABEL = 4;
+  BROWSER_SELECTOR_KIND_PLACEHOLDER = 5;
+  BROWSER_SELECTOR_KIND_TEST_ID = 6;
+  BROWSER_SELECTOR_KIND_XPATH = 7;
+}
+
+enum BrowserSelectorState {
+  BROWSER_SELECTOR_STATE_UNSPECIFIED = 0;
+  BROWSER_SELECTOR_STATE_ATTACHED = 1;
+  BROWSER_SELECTOR_STATE_DETACHED = 2;
+  BROWSER_SELECTOR_STATE_VISIBLE = 3;
+  BROWSER_SELECTOR_STATE_HIDDEN = 4;
+}
+
+enum BrowserNavigationWaitUntil {
+  BROWSER_NAVIGATION_WAIT_UNTIL_UNSPECIFIED = 0;
+  BROWSER_NAVIGATION_WAIT_UNTIL_LOAD = 1;
+  BROWSER_NAVIGATION_WAIT_UNTIL_DOM_CONTENT_LOADED = 2;
+  BROWSER_NAVIGATION_WAIT_UNTIL_NETWORK_IDLE = 3;
+  BROWSER_NAVIGATION_WAIT_UNTIL_COMMIT = 4;
+}
+
+enum BrowserLoadState {
+  BROWSER_LOAD_STATE_UNSPECIFIED = 0;
+  BROWSER_LOAD_STATE_LOAD = 1;
+  BROWSER_LOAD_STATE_DOM_CONTENT_LOADED = 2;
+  BROWSER_LOAD_STATE_NETWORK_IDLE = 3;
+}
+
+enum BrowserMouseButton {
+  BROWSER_MOUSE_BUTTON_UNSPECIFIED = 0;
+  BROWSER_MOUSE_BUTTON_LEFT = 1;
+  BROWSER_MOUSE_BUTTON_RIGHT = 2;
+  BROWSER_MOUSE_BUTTON_MIDDLE = 3;
+}
+
+enum BrowserArtifactKind {
+  BROWSER_ARTIFACT_KIND_UNSPECIFIED = 0;
+  BROWSER_ARTIFACT_KIND_SCREENSHOT = 1;
+  BROWSER_ARTIFACT_KIND_VIDEO = 2;
+  BROWSER_ARTIFACT_KIND_TRACE = 3;
+  BROWSER_ARTIFACT_KIND_HAR = 4;
+  BROWSER_ARTIFACT_KIND_CONSOLE_LOG = 5;
+  BROWSER_ARTIFACT_KIND_NETWORK_LOG = 6;
+  BROWSER_ARTIFACT_KIND_DOWNLOAD = 7;
+}
+
+message BrowserAutomationError {
+  BrowserAutomationErrorCode code = 1;
+  string message = 2;
+  bool retryable = 3;
+}
+
+message BrowserViewport {
+  int32 width = 1;
+  int32 height = 2;
+  double device_scale_factor = 3;
+  bool mobile = 4;
+}
+
+message BrowserProfile {
+  BrowserKind browser_kind = 1;
+  string locale = 2;
+  string timezone = 3;
+  string user_agent = 4;
+  BrowserViewport viewport = 5;
+  string proxy_ref = 6;
+  string storage_state_secret_ref = 7;
+  map<string, string> labels = 20;
+}
+
+message BrowserArtifact {
+  string artifact_id = 1;
+  BrowserArtifactKind kind = 2;
+  string uri = 3;
+  string content_type = 4;
+  int64 size_bytes = 5;
+  map<string, string> labels = 20;
+  google.protobuf.Timestamp created_at = 30;
+}
+
+message BrowserSelector {
+  BrowserSelectorKind kind = 1;
+  string value = 2;
+  string role_name = 3;
+  bool exact = 4;
+  google.protobuf.Duration timeout = 5;
+}
+
+message BrowserSelectorGroup {
+  repeated BrowserSelector selectors = 1;
+  bool require_all = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message BrowserPoint {
+  double x = 1;
+  double y = 2;
+}
+
+message BrowserRect {
+  double x = 1;
+  double y = 2;
+  double width = 3;
+  double height = 4;
+}
+
+message NavigateCommand {
+  string url = 1;
+  BrowserNavigationWaitUntil wait_until = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message ReloadCommand {
+  BrowserNavigationWaitUntil wait_until = 1;
+  google.protobuf.Duration timeout = 2;
+}
+
+message GoBackCommand {
+  BrowserNavigationWaitUntil wait_until = 1;
+  google.protobuf.Duration timeout = 2;
+}
+
+message GoForwardCommand {
+  BrowserNavigationWaitUntil wait_until = 1;
+  google.protobuf.Duration timeout = 2;
+}
+
+message ClickCommand {
+  BrowserSelector selector = 1;
+  int32 click_count = 2;
+  bool force = 3;
+  google.protobuf.Duration timeout = 4;
+  BrowserSelectorGroup selector_group = 5;
+  BrowserMouseButton button = 6;
+  BrowserPoint position = 7;
+  google.protobuf.Duration delay = 8;
+  google.protobuf.Duration hold_duration = 9;
+}
+
+message FillCommand {
+  BrowserSelector selector = 1;
+  string value = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message SetCheckedCommand {
+  BrowserSelector selector = 1;
+  bool checked = 2;
+  bool force = 3;
+  google.protobuf.Duration timeout = 4;
+  BrowserSelectorGroup selector_group = 5;
+}
+
+message TypeTextCommand {
+  BrowserSelector selector = 1;
+  string text = 2;
+  google.protobuf.Duration delay = 3;
+  google.protobuf.Duration timeout = 4;
+  BrowserSelectorGroup selector_group = 5;
+  bool clear_before = 6;
+}
+
+message ClearCommand {
+  BrowserSelector selector = 1;
+  google.protobuf.Duration timeout = 2;
+  BrowserSelectorGroup selector_group = 3;
+}
+
+message PressCommand {
+  BrowserSelector selector = 1;
+  string key = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message FocusCommand {
+  BrowserSelector selector = 1;
+  google.protobuf.Duration timeout = 2;
+  BrowserSelectorGroup selector_group = 3;
+}
+
+message BlurCommand {
+  BrowserSelector selector = 1;
+  google.protobuf.Duration timeout = 2;
+  BrowserSelectorGroup selector_group = 3;
+}
+
+message HoverCommand {
+  BrowserSelector selector = 1;
+  BrowserPoint position = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message MouseMoveCommand {
+  BrowserPoint point = 1;
+  repeated BrowserPoint path = 2;
+  google.protobuf.Duration duration = 3;
+}
+
+message MouseClickCommand {
+  BrowserPoint point = 1;
+  BrowserMouseButton button = 2;
+  int32 click_count = 3;
+  google.protobuf.Duration delay = 4;
+  google.protobuf.Duration hold_duration = 5;
+}
+
+message MouseDownCommand {
+  BrowserMouseButton button = 1;
+}
+
+message MouseUpCommand {
+  BrowserMouseButton button = 1;
+}
+
+message DragCommand {
+  BrowserSelector source_selector = 1;
+  BrowserSelector target_selector = 2;
+  BrowserPoint source_point = 3;
+  BrowserPoint target_point = 4;
+  google.protobuf.Duration timeout = 5;
+  BrowserSelectorGroup source_selector_group = 6;
+  BrowserSelectorGroup target_selector_group = 7;
+}
+
+message ScrollCommand {
+  BrowserSelector selector = 1;
+  BrowserSelectorGroup selector_group = 2;
+  double delta_x = 3;
+  double delta_y = 4;
+  google.protobuf.Duration timeout = 5;
+}
+
+message WaitForSelectorCommand {
+  BrowserSelector selector = 1;
+  BrowserSelectorState state = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message WaitForTextCommand {
+  string text = 1;
+  bool exact = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message WaitForURLCommand {
+  string url_pattern = 1;
+  bool exact = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message WaitForLoadStateCommand {
+  BrowserLoadState state = 1;
+  google.protobuf.Duration timeout = 2;
+}
+
+message WaitForTimeoutCommand {
+  google.protobuf.Duration duration = 1;
+}
+
+message GetPageStateCommand {
+  bool include_title = 1;
+  bool include_text = 2;
+  bool include_html = 3;
+}
+
+message ExtractTextCommand {
+  BrowserSelector selector = 1;
+  bool all_matches = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message GetAttributeCommand {
+  BrowserSelector selector = 1;
+  string name = 2;
+  bool all_matches = 3;
+  google.protobuf.Duration timeout = 4;
+  BrowserSelectorGroup selector_group = 5;
+}
+
+message CountElementsCommand {
+  BrowserSelector selector = 1;
+  google.protobuf.Duration timeout = 2;
+  BrowserSelectorGroup selector_group = 3;
+}
+
+message ExtractElementCommand {
+  BrowserSelector selector = 1;
+  bool all_matches = 2;
+  bool include_text = 3;
+  bool include_html = 4;
+  bool include_attributes = 5;
+  repeated string attribute_names = 6;
+  bool include_bounding_box = 7;
+  bool include_visibility = 8;
+  google.protobuf.Duration timeout = 9;
+  BrowserSelectorGroup selector_group = 10;
+}
+
+message ScreenshotCommand {
+  BrowserSelector selector = 1;
+  bool full_page = 2;
+  string artifact_key = 3;
+  google.protobuf.Duration timeout = 4;
+  BrowserSelectorGroup selector_group = 5;
+}
+
+message UploadFileCommand {
+  BrowserSelector selector = 1;
+  repeated string file_secret_refs = 2;
+  google.protobuf.Duration timeout = 3;
+  BrowserSelectorGroup selector_group = 4;
+}
+
+message SelectOptionCommand {
+  BrowserSelector selector = 1;
+  repeated string values = 2;
+  repeated string labels = 3;
+  repeated int32 indexes = 4;
+  google.protobuf.Duration timeout = 5;
+  BrowserSelectorGroup selector_group = 6;
+}
+
+message SubmitFormCommand {
+  BrowserSelector selector = 1;
+  google.protobuf.Duration timeout = 2;
+  BrowserSelectorGroup selector_group = 3;
+}
+
+message EvaluateCommand {
+  string expression = 1;
+  google.protobuf.Struct args = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message BrowserCommand {
+  string command_id = 1;
+  string command_key = 2;
+  google.protobuf.Duration timeout = 3;
+  bool continue_on_error = 4;
+  map<string, string> labels = 20;
+
+  oneof operation {
+    NavigateCommand navigate = 10;
+    ClickCommand click = 11;
+    FillCommand fill = 12;
+    PressCommand press = 13;
+    WaitForSelectorCommand wait_for_selector = 14;
+    WaitForTextCommand wait_for_text = 15;
+    ExtractTextCommand extract_text = 16;
+    ScreenshotCommand screenshot = 17;
+    UploadFileCommand upload_file = 18;
+    EvaluateCommand evaluate = 19;
+    SelectOptionCommand select_option = 21;
+    ReloadCommand reload = 22;
+    GoBackCommand go_back = 23;
+    GoForwardCommand go_forward = 24;
+    WaitForURLCommand wait_for_url = 25;
+    WaitForLoadStateCommand wait_for_load_state = 26;
+    WaitForTimeoutCommand wait_for_timeout = 27;
+    TypeTextCommand type_text = 28;
+    ClearCommand clear = 29;
+    FocusCommand focus = 30;
+    BlurCommand blur = 31;
+    HoverCommand hover = 32;
+    MouseMoveCommand mouse_move = 33;
+    MouseClickCommand mouse_click = 34;
+    MouseDownCommand mouse_down = 35;
+    MouseUpCommand mouse_up = 36;
+    DragCommand drag = 37;
+    SubmitFormCommand submit_form = 38;
+    GetAttributeCommand get_attribute = 39;
+    ExtractElementCommand extract_element = 40;
+    SetCheckedCommand set_checked = 41;
+    ScrollCommand scroll = 42;
+    GetPageStateCommand get_page_state = 43;
+    CountElementsCommand count_elements = 44;
+  }
+}
+
+message BrowserCommandResult {
+  string command_id = 1;
+  string command_key = 2;
+  BrowserCommandStatus status = 3;
+  BrowserAutomationError error = 4;
+  string text = 5;
+  repeated string texts = 6;
+  google.protobuf.Value json_value = 7;
+  BrowserArtifact artifact = 8;
+  int32 matched_count = 9;
+  string current_url = 10;
+  string attribute_value = 11;
+  map<string, string> attributes = 12;
+  bool visible = 13;
+  BrowserRect bounding_box = 14;
+  string title = 15;
+  google.protobuf.Timestamp completed_at = 30;
+}
+
+message BrowserSession {
+  string session_id = 1;
+  string request_id = 2;
+  BrowserSessionStatus status = 3;
+  BrowserProfile profile = 4;
+  BrowserAutomationError last_error = 5;
+  repeated BrowserArtifact artifacts = 6;
+  map<string, string> labels = 20;
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp started_at = 31;
+  google.protobuf.Timestamp updated_at = 32;
+  google.protobuf.Timestamp stopped_at = 33;
+  google.protobuf.Timestamp expires_at = 34;
+}
+
+message BrowserTaskInput {
+  string session_id = 1;
+  string task_key = 2;
+  string scenario_key = 3;
+  string target_url = 4;
+  google.protobuf.Duration timeout = 5;
+  repeated BrowserCommand commands = 6;
+  map<string, string> labels = 20;
+}
+
+message BrowserTask {
+  string task_id = 1;
+  string request_id = 2;
+  BrowserTaskStatus status = 3;
+  BrowserTaskInput input = 4;
+  BrowserAutomationError last_error = 5;
+  repeated BrowserArtifact artifacts = 6;
+  repeated BrowserCommandResult results = 7;
+  map<string, string> labels = 20;
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp started_at = 31;
+  google.protobuf.Timestamp updated_at = 32;
+  google.protobuf.Timestamp completed_at = 33;
+}
+
+message BrowserTaskFilter {
+  string session_id = 1;
+  BrowserTaskStatus status = 2;
+  string task_key = 3;
+  string scenario_key = 4;
+  string label_key = 20;
+  string label_value = 21;
+  google.protobuf.Timestamp created_after = 30;
+  google.protobuf.Timestamp created_before = 31;
+}
+
+message StartBrowserSessionRequest {
+  string request_id = 1;
+  BrowserProfile profile = 2;
+  google.protobuf.Duration ttl = 3;
+}
+
+message StartBrowserSessionResponse {
+  BrowserSession session = 1;
+  BrowserAutomationError error = 2;
+}
+
+message GetBrowserSessionRequest {
+  string session_id = 1;
+}
+
+message GetBrowserSessionResponse {
+  BrowserSession session = 1;
+  BrowserAutomationError error = 2;
+}
+
+message StopBrowserSessionRequest {
+  string session_id = 1;
+  string reason = 2;
+}
+
+message StopBrowserSessionResponse {
+  BrowserSession session = 1;
+  BrowserAutomationError error = 2;
+}
+
+message StartBrowserTaskRequest {
+  string request_id = 1;
+  BrowserTaskInput input = 2;
+}
+
+message StartBrowserTaskResponse {
+  BrowserTask task = 1;
+  BrowserAutomationError error = 2;
+}
+
+message ExecuteBrowserCommandsRequest {
+  string request_id = 1;
+  BrowserTaskInput input = 2;
+}
+
+message ExecuteBrowserCommandsResponse {
+  BrowserTask task = 1;
+  repeated BrowserCommandResult results = 2;
+  BrowserAutomationError error = 3;
+}
+
+message GetBrowserTaskRequest {
+  string task_id = 1;
+}
+
+message GetBrowserTaskResponse {
+  BrowserTask task = 1;
+  BrowserAutomationError error = 2;
+}
+
+message ListBrowserTasksRequest {
+  BrowserTaskFilter filter = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListBrowserTasksResponse {
+  repeated BrowserTask tasks = 1;
+  string next_page_token = 2;
+  BrowserAutomationError error = 3;
+}
+
+message BrowserAutomationEventContext {
+  string event_id = 1;
+  string event_version = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string source_service = 4;
+  string correlation_id = 5;
+  string trace_id = 6;
+  string idempotency_key = 7;
+}
+
+message BrowserSessionStartedEvent {
+  BrowserAutomationEventContext context = 1;
+  BrowserSession session = 2;
+}
+
+message BrowserSessionStoppedEvent {
+  BrowserAutomationEventContext context = 1;
+  string session_id = 2;
+  BrowserSessionStatus status = 3;
+  string reason = 4;
+}
+
+message BrowserTaskStatusChangedEvent {
+  BrowserAutomationEventContext context = 1;
+  string task_id = 2;
+  BrowserTaskStatus previous_status = 3;
+  BrowserTaskStatus current_status = 4;
+  string reason = 5;
+}
