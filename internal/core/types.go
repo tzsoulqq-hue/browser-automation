@@ -1,8 +1,10 @@
 package core
 
 import (
+	"errors"
 	"fmt"
-	"time"
+
+	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
 )
 
 type ErrorCode string
@@ -44,144 +46,88 @@ func NewError(code ErrorCode, message string, retryable bool) *Error {
 	return &Error{Code: code, Message: message, Retryable: retryable}
 }
 
-type BrowserKind string
-
-const (
-	BrowserKindChromium BrowserKind = "chromium"
-	BrowserKindFirefox  BrowserKind = "firefox"
-	BrowserKindWebKit   BrowserKind = "webkit"
-)
-
-type SessionStatus string
-
-const (
-	SessionStatusStarting SessionStatus = "starting"
-	SessionStatusRunning  SessionStatus = "running"
-	SessionStatusStopping SessionStatus = "stopping"
-	SessionStatusStopped  SessionStatus = "stopped"
-	SessionStatusFailed   SessionStatus = "failed"
-	SessionStatusExpired  SessionStatus = "expired"
-)
-
-func (s SessionStatus) IsFinal() bool {
-	switch s {
-	case SessionStatusStopped, SessionStatusFailed, SessionStatusExpired:
-		return true
-	default:
-		return false
+func AutomationError(err error) *browserautomationv1.BrowserAutomationError {
+	if err == nil {
+		return nil
+	}
+	var automationErr *Error
+	if !errors.As(err, &automationErr) {
+		automationErr = NewError(CodeInternal, err.Error(), false)
+	}
+	return &browserautomationv1.BrowserAutomationError{
+		Code:      ErrorCodeToProto(automationErr.Code),
+		Message:   automationErr.Message,
+		Retryable: automationErr.Retryable,
 	}
 }
 
-type TaskStatus string
-
-const (
-	TaskStatusQueued    TaskStatus = "queued"
-	TaskStatusRunning   TaskStatus = "running"
-	TaskStatusSucceeded TaskStatus = "succeeded"
-	TaskStatusFailed    TaskStatus = "failed"
-	TaskStatusCanceled  TaskStatus = "canceled"
-	TaskStatusTimeout   TaskStatus = "timeout"
-)
-
-func (s TaskStatus) IsFinal() bool {
-	switch s {
-	case TaskStatusSucceeded, TaskStatusFailed, TaskStatusCanceled, TaskStatusTimeout:
-		return true
+func ErrorCodeToProto(code ErrorCode) browserautomationv1.BrowserAutomationErrorCode {
+	switch code {
+	case CodeValidationFailed:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_VALIDATION_FAILED
+	case CodeSessionNotFound:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_SESSION_NOT_FOUND
+	case CodeTaskNotFound:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_TASK_NOT_FOUND
+	case CodeArtifactNotFound:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_ARTIFACT_NOT_FOUND
+	case CodeSessionFinalized:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_SESSION_ALREADY_FINALIZED
+	case CodeTaskFinalized:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_TASK_ALREADY_FINALIZED
+	case CodeCapacityUnavailable:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_CAPACITY_UNAVAILABLE
+	case CodeBrowserUnavailable:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_BROWSER_UNAVAILABLE
+	case CodeProxyFailed:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_PROXY_FAILED
+	case CodeNavigationFailed:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_NAVIGATION_FAILED
+	case CodeScriptFailed:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_SCRIPT_FAILED
+	case CodeTimeout:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_TIMEOUT
+	case CodeUnsupportedOperation:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_UNSUPPORTED_OPERATION
+	case CodeInternal:
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_INTERNAL
 	default:
-		return false
+		return browserautomationv1.BrowserAutomationErrorCode_BROWSER_AUTOMATION_ERROR_CODE_UNSPECIFIED
 	}
 }
 
-type ArtifactKind string
-
-const (
-	ArtifactKindScreenshot ArtifactKind = "screenshot"
-	ArtifactKindVideo      ArtifactKind = "video"
-	ArtifactKindTrace      ArtifactKind = "trace"
-	ArtifactKindHAR        ArtifactKind = "har"
-	ArtifactKindConsoleLog ArtifactKind = "console_log"
-	ArtifactKindNetworkLog ArtifactKind = "network_log"
-	ArtifactKindDownload   ArtifactKind = "download"
-)
-
-type Viewport struct {
-	Width             int32
-	Height            int32
-	DeviceScaleFactor float64
-	Mobile            bool
-}
-
-type Profile struct {
-	BrowserKind           BrowserKind
-	Locale                string
-	Timezone              string
-	UserAgent             string
-	Viewport              Viewport
-	ProxyRef              string
-	StorageStateSecretRef string
-	Labels                map[string]string
-}
-
-type Artifact struct {
-	ID          string
-	Kind        ArtifactKind
-	URI         string
-	ContentType string
-	SizeBytes   int64
-	Labels      map[string]string
-	CreatedAt   time.Time
-}
-
-type Session struct {
-	ID        string
-	RequestID string
-	Status    SessionStatus
-	Profile   Profile
-	LastError *Error
-	Artifacts []Artifact
-	Labels    map[string]string
-	CreatedAt time.Time
-	StartedAt time.Time
-	UpdatedAt time.Time
-	StoppedAt time.Time
-	ExpiresAt time.Time
-}
-
-type TaskInput struct {
-	SessionID   string
-	TaskKey     string
-	ScenarioKey string
-	TargetURL   string
-	Timeout     time.Duration
-	Labels      map[string]string
-}
-
-type Task struct {
-	ID          string
-	RequestID   string
-	Status      TaskStatus
-	Input       TaskInput
-	LastError   *Error
-	Artifacts   []Artifact
-	Labels      map[string]string
-	CreatedAt   time.Time
-	StartedAt   time.Time
-	UpdatedAt   time.Time
-	CompletedAt time.Time
-}
-
-type TaskFilter struct {
-	SessionID     string
-	Status        TaskStatus
-	TaskKey       string
-	ScenarioKey   string
-	LabelKey      string
-	LabelValue    string
-	CreatedAfter  time.Time
-	CreatedBefore time.Time
-}
+type Session = browserautomationv1.BrowserSession
+type Task = browserautomationv1.BrowserTask
+type Profile = browserautomationv1.BrowserProfile
+type TaskInput = browserautomationv1.BrowserTaskInput
+type TaskFilter = browserautomationv1.BrowserTaskFilter
+type Artifact = browserautomationv1.BrowserArtifact
+type CommandResult = browserautomationv1.BrowserCommandResult
 
 type TaskListResult struct {
-	Tasks         []Task
+	Tasks         []*Task
 	NextPageToken string
+}
+
+func SessionStatusIsFinal(status browserautomationv1.BrowserSessionStatus) bool {
+	switch status {
+	case browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_STOPPED,
+		browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_FAILED,
+		browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_EXPIRED:
+		return true
+	default:
+		return false
+	}
+}
+
+func TaskStatusIsFinal(status browserautomationv1.BrowserTaskStatus) bool {
+	switch status {
+	case browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_SUCCEEDED,
+		browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_FAILED,
+		browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_CANCELED,
+		browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_TIMEOUT:
+		return true
+	default:
+		return false
+	}
 }
