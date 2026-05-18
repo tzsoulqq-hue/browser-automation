@@ -35,6 +35,7 @@ type recordingRuntime struct {
 	stoppedSessionIDs []string
 	taskIDs           []string
 	executedTaskIDs   []string
+	executedInputs    []*core.TaskInput
 	err               error
 }
 
@@ -55,6 +56,7 @@ func (r *recordingRuntime) EnqueueTask(_ context.Context, task *core.Task) error
 
 func (r *recordingRuntime) ExecuteTask(_ context.Context, task *core.Task) (core.TaskExecutionResult, error) {
 	r.executedTaskIDs = append(r.executedTaskIDs, task.GetTaskId())
+	r.executedInputs = append(r.executedInputs, task.GetInput())
 	return core.TaskExecutionResult{
 		Results: []*core.CommandResult{{
 			CommandId:   task.GetInput().GetCommands()[0].GetCommandId(),
@@ -233,6 +235,52 @@ func TestExecuteBrowserCommandsRunsRuntimeAndStoresResults(t *testing.T) {
 	}
 	if len(stored.GetResults()) != 1 || stored.GetResults()[0].GetCommandId() != "cmd-1" {
 		t.Fatalf("stored results = %#v, want command result", stored.GetResults())
+	}
+}
+
+func TestExecuteBrowserCommandsAcceptsSelectorGroupAndSelectOption(t *testing.T) {
+	ctx := context.Background()
+	runtime := &recordingRuntime{}
+	service := newTestService(NewMemoryStore(), runtime, []string{"session-1", "task-1"})
+
+	session, err := service.StartBrowserSession(ctx, "session-req-1", nil, 0)
+	if err != nil {
+		t.Fatalf("StartBrowserSession() error = %v", err)
+	}
+	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
+	if err != nil {
+		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
+	}
+	_, err = service.ExecuteBrowserCommands(ctx, "command-req-1", &core.TaskInput{
+		SessionId:         session.GetSessionId(),
+		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
+		Commands: []*browserautomationv1.BrowserCommand{{
+			CommandId:       "cmd-1",
+			CommandKey:      "select_month",
+			ContinueOnError: true,
+			Operation: &browserautomationv1.BrowserCommand_SelectOption{
+				SelectOption: &browserautomationv1.SelectOptionCommand{
+					SelectorGroup: &browserautomationv1.BrowserSelectorGroup{
+						Selectors: []*browserautomationv1.BrowserSelector{
+							{Kind: browserautomationv1.BrowserSelectorKind_BROWSER_SELECTOR_KIND_LABEL, Value: "Month", Exact: true},
+							{Kind: browserautomationv1.BrowserSelectorKind_BROWSER_SELECTOR_KIND_CSS, Value: "select[name='BirthMonth']"},
+						},
+					},
+					Values: []string{"1"},
+				},
+			},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("ExecuteBrowserCommands() error = %v", err)
+	}
+	if len(runtime.executedInputs) != 1 {
+		t.Fatalf("executed inputs = %d, want 1", len(runtime.executedInputs))
+	}
+	command := runtime.executedInputs[0].GetCommands()[0]
+	selectOption := command.GetSelectOption()
+	if !command.GetContinueOnError() || len(selectOption.GetSelectorGroup().GetSelectors()) != 2 {
+		t.Fatalf("command = %#v, want structured selector group and continue_on_error", command)
 	}
 }
 

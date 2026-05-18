@@ -366,11 +366,11 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 				return core.NewError(core.CodeValidationFailed, "navigate url is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Click:
-			if operation.Click.GetSelector().GetValue() == "" {
+			if !hasSelector(operation.Click.GetSelector(), operation.Click.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "click selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Fill:
-			if operation.Fill.GetSelector().GetValue() == "" {
+			if !hasSelector(operation.Fill.GetSelector(), operation.Fill.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "fill selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Press:
@@ -378,7 +378,7 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 				return core.NewError(core.CodeValidationFailed, "press key is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_WaitForSelector:
-			if operation.WaitForSelector.GetSelector().GetValue() == "" {
+			if !hasSelector(operation.WaitForSelector.GetSelector(), operation.WaitForSelector.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "wait selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_WaitForText:
@@ -386,16 +386,23 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 				return core.NewError(core.CodeValidationFailed, "wait text is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_ExtractText:
-			if operation.ExtractText.GetSelector().GetValue() == "" {
+			if !hasSelector(operation.ExtractText.GetSelector(), operation.ExtractText.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "extract selector is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Screenshot:
 		case *browserautomationv1.BrowserCommand_UploadFile:
-			if operation.UploadFile.GetSelector().GetValue() == "" {
+			if !hasSelector(operation.UploadFile.GetSelector(), operation.UploadFile.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "upload selector is required", false)
 			}
 			if len(operation.UploadFile.GetFileSecretRefs()) == 0 {
 				return core.NewError(core.CodeValidationFailed, "file_secret_refs are required", false)
+			}
+		case *browserautomationv1.BrowserCommand_SelectOption:
+			if !hasSelector(operation.SelectOption.GetSelector(), operation.SelectOption.GetSelectorGroup()) {
+				return core.NewError(core.CodeValidationFailed, "select option selector is required", false)
+			}
+			if len(operation.SelectOption.GetValues()) == 0 && len(operation.SelectOption.GetLabels()) == 0 && len(operation.SelectOption.GetIndexes()) == 0 {
+				return core.NewError(core.CodeValidationFailed, "select option value, label or index is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_Evaluate:
 			if operation.Evaluate.GetExpression() == "" {
@@ -406,6 +413,18 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 		}
 	}
 	return nil
+}
+
+func hasSelector(selector *browserautomationv1.BrowserSelector, group *browserautomationv1.BrowserSelectorGroup) bool {
+	if selector.GetValue() != "" {
+		return true
+	}
+	for _, candidate := range group.GetSelectors() {
+		if candidate.GetValue() != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *AutomationService) requireActiveLease(session *core.Session, leaseToken string) error {
