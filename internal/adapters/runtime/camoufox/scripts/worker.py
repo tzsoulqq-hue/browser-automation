@@ -81,6 +81,8 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
                 artifacts.append(artifact)
         except CommandFailure as exc:
             results.append(failed_result(command, exc.code, exc.message, exc.retryable))
+            if command.get("continue_on_error"):
+                continue
             return {
                 "type": "task_result",
                 "task_id": task_id,
@@ -90,6 +92,8 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
             }
         except PlaywrightTimeoutError as exc:
             results.append(failed_result(command, ERROR_TIMEOUT, str(exc), True))
+            if command.get("continue_on_error"):
+                continue
             return {
                 "type": "task_result",
                 "task_id": task_id,
@@ -100,6 +104,8 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
         except PlaywrightError as exc:
             code = operation_error_code(command)
             results.append(failed_result(command, code, str(exc), is_retryable(code)))
+            if command.get("continue_on_error"):
+                continue
             return {
                 "type": "task_result",
                 "task_id": task_id,
@@ -110,6 +116,8 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
         except Exception as exc:
             traceback.print_exc(file=sys.stderr)
             results.append(failed_result(command, ERROR_BROWSER_UNAVAILABLE, str(exc), True))
+            if command.get("continue_on_error"):
+                continue
             return {
                 "type": "task_result",
                 "task_id": task_id,
@@ -133,7 +141,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
 
     if "click" in command:
         payload = command["click"]
-        locator = resolve_locator(page, payload.get("selector"))
+        locator = resolve_command_locator(page, payload)
         kwargs = timeout_kwargs(payload.get("timeout") or command.get("timeout"))
         click_count = payload.get("click_count")
         if click_count:
@@ -145,16 +153,15 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
 
     if "fill" in command:
         payload = command["fill"]
-        locator = resolve_locator(page, payload.get("selector"))
+        locator = resolve_command_locator(page, payload)
         locator.fill(payload.get("value") or "", **timeout_kwargs(payload.get("timeout") or command.get("timeout")))
         return succeeded_result(command, current_url=page.url), None
 
     if "press" in command:
         payload = command["press"]
         key = required(payload, "key")
-        selector = payload.get("selector")
-        if selector and selector.get("value"):
-            resolve_locator(page, selector).press(key, **timeout_kwargs(payload.get("timeout") or command.get("timeout")))
+        if has_command_locator(payload):
+            resolve_command_locator(page, payload).press(key, **timeout_kwargs(payload.get("timeout") or command.get("timeout")))
         else:
             page.keyboard.press(key)
         return succeeded_result(command, current_url=page.url), None
@@ -165,7 +172,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         state = selector_state_value(payload.get("state"))
         if state:
             kwargs["state"] = state
-        resolve_locator(page, payload.get("selector")).wait_for(**kwargs)
+        resolve_command_locator(page, payload).wait_for(**kwargs)
         return succeeded_result(command, current_url=page.url), None
 
     if "wait_for_text" in command:
@@ -177,7 +184,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
 
     if "extract_text" in command:
         payload = command["extract_text"]
-        locator = resolve_locator(page, payload.get("selector"))
+        locator = resolve_command_locator(page, payload)
         timeout = duration_ms(payload.get("timeout") or command.get("timeout"))
         if timeout is not None:
             locator.first.wait_for(timeout=timeout)
@@ -194,9 +201,8 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         artifact_id = sanitize_filename(f"{task_id}-{artifact_key}")
         path = artifacts_dir / f"{artifact_id}.png"
         kwargs = timeout_kwargs(payload.get("timeout") or command.get("timeout"))
-        selector = payload.get("selector")
-        if selector and selector.get("value"):
-            resolve_locator(page, selector).screenshot(path=str(path), **kwargs)
+        if has_command_locator(payload):
+            resolve_command_locator(page, payload).screenshot(path=str(path), **kwargs)
         else:
             page.screenshot(path=str(path), full_page=bool(payload.get("full_page")), **kwargs)
         artifact = {
@@ -213,6 +219,22 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
     if "upload_file" in command:
         raise CommandFailure(ERROR_UNSUPPORTED_OPERATION, "upload_file requires a secret/file resolver adapter", False)
 
+    if "select_option" in command:
+        payload = command["select_option"]
+        locator = resolve_command_locator(page, payload)
+        kwargs = timeout_kwargs(payload.get("timeout") or command.get("timeout"))
+        selected_values: List[str] = []
+        values = payload.get("values") or []
+        labels = payload.get("labels") or []
+        indexes = payload.get("indexes") or []
+        if values:
+            selected_values.extend(locator.select_option(value=values, **kwargs))
+        if labels:
+            selected_values.extend(locator.select_option(label=labels, **kwargs))
+        if indexes:
+            selected_values.extend(locator.select_option(index=indexes, **kwargs))
+        return succeeded_result(command, json_value={"selected_values": selected_values}, current_url=page.url), None
+
     if "evaluate" in command:
         payload = command["evaluate"]
         expression = required(payload, "expression")
@@ -221,6 +243,46 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         return succeeded_result(command, json_value=json_safe(value), current_url=page.url), None
 
     raise CommandFailure(ERROR_UNSUPPORTED_OPERATION, "unsupported command operation", False)
+
+
+def has_command_locator(payload: Dict[str, Any]) -> bool:
+    selector = payload.get("selector") or {}
+    selector_group = payload.get("selector_group") or {}
+    if selector.get("value"):
+        return True
+    return any((candidate or {}).get("value") for candidate in selector_group.get("selectors") or [])
+
+
+def resolve_command_locator(page: Any, payload: Dict[str, Any]) -> Any:
+    selector_group = payload.get("selector_group")
+    if selector_group and selector_group.get("selectors"):
+        return resolve_locator_group(page, selector_group)
+    return resolve_locator(page, payload.get("selector"))
+
+
+def resolve_locator_group(page: Any, selector_group: Dict[str, Any]) -> Any:
+    selectors = [selector for selector in selector_group.get("selectors") or [] if selector and selector.get("value")]
+    if not selectors:
+        raise CommandFailure(ERROR_VALIDATION_FAILED, "selector_group.selectors is required", False)
+    timeout = selector_group.get("timeout")
+    if selector_group.get("require_all"):
+        locators = [resolve_locator(page, with_default_timeout(selector, timeout)) for selector in selectors]
+        return locators[0]
+    failures: List[str] = []
+    for selector in selectors:
+        try:
+            return resolve_locator(page, with_default_timeout(selector, timeout))
+        except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
+            failures.append(str(exc))
+    raise CommandFailure(ERROR_TIMEOUT, "; ".join(failures) or "selector group did not match", True)
+
+
+def with_default_timeout(selector: Dict[str, Any], timeout: Any) -> Dict[str, Any]:
+    if timeout is None or selector.get("timeout") is not None:
+        return selector
+    candidate = dict(selector)
+    candidate["timeout"] = timeout
+    return candidate
 
 
 def resolve_locator(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
