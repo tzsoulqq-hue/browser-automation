@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package byte.v.forge.browserautomation.internal.v1;
 
-import "byte/v/forge/internalcontracts/browserautomation/v1/browser_automation.proto";
+import "byte/v/forge/contracts/browserautomation/v1/browser_automation.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -27,6 +27,7 @@ enum BrowserRuntimeKind {
   BROWSER_RUNTIME_KIND_PLAYWRIGHT = 1;
   BROWSER_RUNTIME_KIND_CHROME_DEVTOOLS_PROTOCOL = 2;
   BROWSER_RUNTIME_KIND_REMOTE_BROWSER = 3;
+  BROWSER_RUNTIME_KIND_CAMOUFOX_SIDECAR = 4;
 }
 
 message BrowserRuntimeConfig {
@@ -36,7 +37,7 @@ message BrowserRuntimeConfig {
   string endpoint = 4;
   string credential_secret_ref = 5;
   string artifact_bucket_ref = 6;
-  repeated byte.v.forge.internalcontracts.browserautomation.v1.BrowserKind supported_browsers = 7;
+  repeated byte.v.forge.contracts.browserautomation.v1.BrowserKind supported_browsers = 7;
   map<string, string> labels = 20;
   google.protobuf.Timestamp created_at = 30;
   google.protobuf.Timestamp updated_at = 31;
@@ -55,13 +56,13 @@ message RuntimeTaskRef {
 }
 
 message InternalBrowserSession {
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserSession public_session = 1;
+  byte.v.forge.contracts.browserautomation.v1.BrowserSession public_session = 1;
   RuntimeSessionRef runtime_ref = 2;
   google.protobuf.Struct raw_metadata = 20;
 }
 
 message InternalBrowserTask {
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserTask public_task = 1;
+  byte.v.forge.contracts.browserautomation.v1.BrowserTask public_task = 1;
   RuntimeTaskRef runtime_ref = 2;
   google.protobuf.Struct raw_metadata = 20;
 }
@@ -72,7 +73,7 @@ message UpsertRuntimeConfigRequest {
 
 message UpsertRuntimeConfigResponse {
   BrowserRuntimeConfig config = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }
 
 message GetRuntimeConfigRequest {
@@ -81,7 +82,7 @@ message GetRuntimeConfigRequest {
 
 message GetRuntimeConfigResponse {
   BrowserRuntimeConfig config = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }
 
 message UpsertInternalSessionRequest {
@@ -90,7 +91,7 @@ message UpsertInternalSessionRequest {
 
 message UpsertInternalSessionResponse {
   InternalBrowserSession session = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }
 
 message GetInternalSessionRequest {
@@ -99,7 +100,7 @@ message GetInternalSessionRequest {
 
 message GetInternalSessionResponse {
   InternalBrowserSession session = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }
 
 message UpsertInternalTaskRequest {
@@ -108,7 +109,7 @@ message UpsertInternalTaskRequest {
 
 message UpsertInternalTaskResponse {
   InternalBrowserTask task = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }
 
 message GetInternalTaskRequest {
@@ -117,5 +118,5 @@ message GetInternalTaskRequest {
 
 message GetInternalTaskResponse {
   InternalBrowserTask task = 1;
-  byte.v.forge.internalcontracts.browserautomation.v1.BrowserAutomationError error = 2;
+  byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError error = 2;
 }

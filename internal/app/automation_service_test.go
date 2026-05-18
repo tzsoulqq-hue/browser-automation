@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/byte-v-forge/browser-automation/internal/core"
+	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type fakeClock struct {
@@ -28,25 +31,38 @@ func (s *sequenceID) NewID(_ string) string {
 }
 
 type recordingRuntime struct {
-	started []core.Session
-	stopped []core.Session
-	tasks   []core.Task
-	err     error
+	started  []core.Session
+	stopped  []core.Session
+	tasks    []core.Task
+	executed []core.Task
+	err      error
 }
 
-func (r *recordingRuntime) StartSession(_ context.Context, session core.Session) error {
-	r.started = append(r.started, session)
+func (r *recordingRuntime) StartSession(_ context.Context, session *core.Session) error {
+	r.started = append(r.started, *session)
 	return r.err
 }
 
-func (r *recordingRuntime) StopSession(_ context.Context, session core.Session, _ string) error {
-	r.stopped = append(r.stopped, session)
+func (r *recordingRuntime) StopSession(_ context.Context, session *core.Session, _ string) error {
+	r.stopped = append(r.stopped, *session)
 	return r.err
 }
 
-func (r *recordingRuntime) EnqueueTask(_ context.Context, task core.Task) error {
-	r.tasks = append(r.tasks, task)
+func (r *recordingRuntime) EnqueueTask(_ context.Context, task *core.Task) error {
+	r.tasks = append(r.tasks, *task)
 	return r.err
+}
+
+func (r *recordingRuntime) ExecuteTask(_ context.Context, task *core.Task) (core.TaskExecutionResult, error) {
+	r.executed = append(r.executed, *task)
+	return core.TaskExecutionResult{
+		Results: []*core.CommandResult{{
+			CommandId:   task.GetInput().GetCommands()[0].GetCommandId(),
+			CommandKey:  task.GetInput().GetCommands()[0].GetCommandKey(),
+			Status:      browserautomationv1.BrowserCommandStatus_BROWSER_COMMAND_STATUS_SUCCEEDED,
+			CompletedAt: timestamppb.New(baseTime()),
+		}},
+	}, r.err
 }
 
 func TestStartBrowserSessionCreatesRunningSession(t *testing.T) {
@@ -54,26 +70,26 @@ func TestStartBrowserSessionCreatesRunningSession(t *testing.T) {
 	runtime := &recordingRuntime{}
 	service := newTestService(NewMemoryStore(), runtime, []string{"session-1"})
 
-	session, err := service.StartBrowserSession(ctx, "req-1", core.Profile{
+	session, err := service.StartBrowserSession(ctx, "req-1", &browserautomationv1.BrowserProfile{
 		Locale: "en-US",
 		Labels: map[string]string{"pool": "default"},
 	}, 0)
 	if err != nil {
 		t.Fatalf("StartBrowserSession() error = %v", err)
 	}
-	if session.ID != "session-1" {
-		t.Fatalf("session_id = %q, want session-1", session.ID)
+	if session.GetSessionId() != "session-1" {
+		t.Fatalf("session_id = %q, want session-1", session.GetSessionId())
 	}
-	if session.Status != core.SessionStatusRunning {
-		t.Fatalf("status = %q, want running", session.Status)
+	if session.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_RUNNING {
+		t.Fatalf("status = %q, want running", session.GetStatus())
 	}
-	if session.Profile.BrowserKind != core.BrowserKindChromium {
-		t.Fatalf("browser_kind = %q, want chromium", session.Profile.BrowserKind)
+	if session.GetProfile().GetBrowserKind() != browserautomationv1.BrowserKind_BROWSER_KIND_CHROMIUM {
+		t.Fatalf("browser_kind = %q, want chromium", session.GetProfile().GetBrowserKind())
 	}
-	if session.ExpiresAt.IsZero() || session.StartedAt.IsZero() {
+	if session.GetExpiresAt() == nil || session.GetStartedAt() == nil {
 		t.Fatal("timestamps should be filled")
 	}
-	if len(runtime.started) != 1 || runtime.started[0].ID != session.ID {
+	if len(runtime.started) != 1 || runtime.started[0].GetSessionId() != session.GetSessionId() {
 		t.Fatalf("runtime started = %#v, want one session", runtime.started)
 	}
 }
@@ -83,16 +99,16 @@ func TestStartBrowserSessionIsIdempotentByRequestID(t *testing.T) {
 	runtime := &recordingRuntime{}
 	service := newTestService(NewMemoryStore(), runtime, []string{"session-1"})
 
-	first, err := service.StartBrowserSession(ctx, "req-1", core.Profile{}, 0)
+	first, err := service.StartBrowserSession(ctx, "req-1", nil, 0)
 	if err != nil {
 		t.Fatalf("StartBrowserSession() first error = %v", err)
 	}
-	second, err := service.StartBrowserSession(ctx, "req-1", core.Profile{}, 0)
+	second, err := service.StartBrowserSession(ctx, "req-1", nil, 0)
 	if err != nil {
 		t.Fatalf("StartBrowserSession() second error = %v", err)
 	}
-	if first.ID != second.ID {
-		t.Fatalf("second session id = %q, want %q", second.ID, first.ID)
+	if first.GetSessionId() != second.GetSessionId() {
+		t.Fatalf("second session id = %q, want %q", second.GetSessionId(), first.GetSessionId())
 	}
 	if len(runtime.started) != 1 {
 		t.Fatalf("runtime starts = %d, want 1", len(runtime.started))
@@ -101,15 +117,15 @@ func TestStartBrowserSessionIsIdempotentByRequestID(t *testing.T) {
 
 func TestStartBrowserTaskRequiresRunningSession(t *testing.T) {
 	ctx := context.Background()
-	store := NewMemoryStoreWithData([]core.Session{{
-		ID:        "session-1",
-		Status:    core.SessionStatusStopped,
-		CreatedAt: baseTime(),
-		UpdatedAt: baseTime(),
+	store := NewMemoryStoreWithData([]*core.Session{{
+		SessionId: "session-1",
+		Status:    browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_STOPPED,
+		CreatedAt: timestamppb.New(baseTime()),
+		UpdatedAt: timestamppb.New(baseTime()),
 	}}, nil)
 	service := newTestService(store, &recordingRuntime{}, []string{"task-1"})
 
-	_, err := service.StartBrowserTask(ctx, "task-req-1", core.TaskInput{SessionID: "session-1", TaskKey: "login"})
+	_, err := service.StartBrowserTask(ctx, "task-req-1", &browserautomationv1.BrowserTaskInput{SessionId: "session-1", TaskKey: "login", SessionLeaseToken: "lease-1"})
 	if err == nil {
 		t.Fatal("StartBrowserTask() expected error")
 	}
@@ -124,28 +140,33 @@ func TestStartTaskStopSessionAndListTasks(t *testing.T) {
 	runtime := &recordingRuntime{}
 	service := newTestService(NewMemoryStore(), runtime, []string{"session-1", "task-1"})
 
-	session, err := service.StartBrowserSession(ctx, "session-req-1", core.Profile{}, 0)
+	session, err := service.StartBrowserSession(ctx, "session-req-1", nil, 0)
 	if err != nil {
 		t.Fatalf("StartBrowserSession() error = %v", err)
 	}
-	task, err := service.StartBrowserTask(ctx, "task-req-1", core.TaskInput{
-		SessionID:   session.ID,
-		TaskKey:     "register",
-		ScenarioKey: "outlook",
-		Labels:      map[string]string{"batch": "a"},
+	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
+	if err != nil {
+		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
+	}
+	task, err := service.StartBrowserTask(ctx, "task-req-1", &core.TaskInput{
+		SessionId:         session.GetSessionId(),
+		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
+		TaskKey:           "register",
+		ScenarioKey:       "outlook",
+		Labels:            map[string]string{"batch": "a"},
 	})
 	if err != nil {
 		t.Fatalf("StartBrowserTask() error = %v", err)
 	}
-	if task.ID != "task-1" || task.Status != core.TaskStatusQueued {
+	if task.GetTaskId() != "task-1" || task.GetStatus() != browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_QUEUED {
 		t.Fatalf("task = %#v, want queued task-1", task)
 	}
-	if len(runtime.tasks) != 1 || runtime.tasks[0].ID != task.ID {
+	if len(runtime.tasks) != 1 || runtime.tasks[0].GetTaskId() != task.GetTaskId() {
 		t.Fatalf("runtime tasks = %#v, want one task", runtime.tasks)
 	}
 
-	result, err := service.ListBrowserTasks(ctx, core.TaskFilter{
-		SessionID:   session.ID,
+	result, err := service.ListBrowserTasks(ctx, &core.TaskFilter{
+		SessionId:   session.GetSessionId(),
 		TaskKey:     "register",
 		ScenarioKey: "outlook",
 		LabelKey:    "batch",
@@ -154,16 +175,64 @@ func TestStartTaskStopSessionAndListTasks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListBrowserTasks() error = %v", err)
 	}
-	if len(result.Tasks) != 1 || result.Tasks[0].ID != task.ID {
+	if len(result.Tasks) != 1 || result.Tasks[0].GetTaskId() != task.GetTaskId() {
 		t.Fatalf("tasks = %#v, want task", result.Tasks)
 	}
 
-	stopped, err := service.StopBrowserSession(ctx, session.ID, "done")
+	stopped, err := service.StopBrowserSession(ctx, session.GetSessionId(), "done")
 	if err != nil {
 		t.Fatalf("StopBrowserSession() error = %v", err)
 	}
-	if stopped.Status != core.SessionStatusStopped || stopped.Labels["stop_reason"] != "done" {
+	if stopped.GetStatus() != browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_STOPPED || stopped.GetLabels()["stop_reason"] != "done" {
 		t.Fatalf("stopped session = %#v", stopped)
+	}
+}
+
+func TestExecuteBrowserCommandsRunsRuntimeAndStoresResults(t *testing.T) {
+	ctx := context.Background()
+	runtime := &recordingRuntime{}
+	service := newTestService(NewMemoryStore(), runtime, []string{"session-1", "task-1"})
+
+	session, err := service.StartBrowserSession(ctx, "session-req-1", nil, 0)
+	if err != nil {
+		t.Fatalf("StartBrowserSession() error = %v", err)
+	}
+	leased, err := service.AcquireBrowserSessionLease(ctx, "lease-1", session.GetSessionId(), "test-worker", 2*time.Minute)
+	if err != nil {
+		t.Fatalf("AcquireBrowserSessionLease() error = %v", err)
+	}
+	task, err := service.ExecuteBrowserCommands(ctx, "command-req-1", &core.TaskInput{
+		SessionId:         session.GetSessionId(),
+		SessionLeaseToken: leased.GetLease().GetLeaseToken(),
+		Commands: []*browserautomationv1.BrowserCommand{{
+			CommandId:  "cmd-1",
+			CommandKey: "navigate",
+			Operation: &browserautomationv1.BrowserCommand_Navigate{
+				Navigate: &browserautomationv1.NavigateCommand{
+					Url:     "https://example.test",
+					Timeout: durationpb.New(time.Second),
+				},
+			},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("ExecuteBrowserCommands() error = %v", err)
+	}
+	if task.GetStatus() != browserautomationv1.BrowserTaskStatus_BROWSER_TASK_STATUS_SUCCEEDED {
+		t.Fatalf("task status = %q, want succeeded", task.GetStatus())
+	}
+	if task.GetInput().GetTaskKey() != "browser.commands" {
+		t.Fatalf("task key = %q, want browser.commands", task.GetInput().GetTaskKey())
+	}
+	if len(runtime.executed) != 1 || runtime.executed[0].GetTaskId() != task.GetTaskId() {
+		t.Fatalf("runtime executed = %#v, want one task", runtime.executed)
+	}
+	stored, err := service.GetBrowserTask(ctx, task.GetTaskId())
+	if err != nil {
+		t.Fatalf("GetBrowserTask() error = %v", err)
+	}
+	if len(stored.GetResults()) != 1 || stored.GetResults()[0].GetCommandId() != "cmd-1" {
+		t.Fatalf("stored results = %#v, want command result", stored.GetResults())
 	}
 }
 

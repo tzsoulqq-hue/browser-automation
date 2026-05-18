@@ -2,9 +2,12 @@ package grpcadapter
 
 import (
 	"context"
+	"time"
 
 	"github.com/byte-v-forge/browser-automation/internal/app"
-	browserautomationv1 "github.com/byte-v-forge/internal-contracts-go/byte/v/forge/internalcontracts/browserautomation/v1"
+	"github.com/byte-v-forge/browser-automation/internal/core"
+	browserautomationv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/browserautomation/v1"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type AutomationServer struct {
@@ -17,52 +20,105 @@ func NewAutomationServer(service *app.AutomationService) *AutomationServer {
 }
 
 func (s *AutomationServer) StartBrowserSession(ctx context.Context, request *browserautomationv1.StartBrowserSessionRequest) (*browserautomationv1.StartBrowserSessionResponse, error) {
-	session, err := s.service.StartBrowserSession(ctx, request.GetRequestId(), fromProtoProfile(request.GetProfile()), protoDuration(request.GetTtl()))
+	session, err := s.service.StartBrowserSession(ctx, request.GetRequestId(), request.GetProfile(), protoDuration(request.GetTtl()))
 	if err != nil {
-		return &browserautomationv1.StartBrowserSessionResponse{Session: toProtoSession(session), Error: toProtoError(err)}, nil
+		return &browserautomationv1.StartBrowserSessionResponse{Session: session, Error: core.AutomationError(err)}, nil
 	}
-	return &browserautomationv1.StartBrowserSessionResponse{Session: toProtoSession(session)}, nil
+	return &browserautomationv1.StartBrowserSessionResponse{Session: session}, nil
 }
 
 func (s *AutomationServer) GetBrowserSession(ctx context.Context, request *browserautomationv1.GetBrowserSessionRequest) (*browserautomationv1.GetBrowserSessionResponse, error) {
 	session, err := s.service.GetBrowserSession(ctx, request.GetSessionId())
 	if err != nil {
-		return &browserautomationv1.GetBrowserSessionResponse{Error: toProtoError(err)}, nil
+		return &browserautomationv1.GetBrowserSessionResponse{Error: core.AutomationError(err)}, nil
 	}
-	return &browserautomationv1.GetBrowserSessionResponse{Session: toProtoSession(session)}, nil
+	return &browserautomationv1.GetBrowserSessionResponse{Session: session}, nil
+}
+
+func (s *AutomationServer) AcquireBrowserSessionLease(ctx context.Context, request *browserautomationv1.AcquireBrowserSessionLeaseRequest) (*browserautomationv1.AcquireBrowserSessionLeaseResponse, error) {
+	session, err := s.service.AcquireBrowserSessionLease(ctx, request.GetRequestId(), request.GetSessionId(), request.GetOwner(), protoDuration(request.GetTtl()))
+	if err != nil {
+		return &browserautomationv1.AcquireBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
+	}
+	return &browserautomationv1.AcquireBrowserSessionLeaseResponse{Session: session}, nil
+}
+
+func (s *AutomationServer) RenewBrowserSessionLease(ctx context.Context, request *browserautomationv1.RenewBrowserSessionLeaseRequest) (*browserautomationv1.RenewBrowserSessionLeaseResponse, error) {
+	session, err := s.service.RenewBrowserSessionLease(ctx, request.GetSessionId(), request.GetLeaseToken(), protoDuration(request.GetTtl()))
+	if err != nil {
+		return &browserautomationv1.RenewBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
+	}
+	return &browserautomationv1.RenewBrowserSessionLeaseResponse{Session: session}, nil
+}
+
+func (s *AutomationServer) ReleaseBrowserSessionLease(ctx context.Context, request *browserautomationv1.ReleaseBrowserSessionLeaseRequest) (*browserautomationv1.ReleaseBrowserSessionLeaseResponse, error) {
+	session, err := s.service.ReleaseBrowserSessionLease(ctx, request.GetSessionId(), request.GetLeaseToken(), request.GetReason())
+	if err != nil {
+		return &browserautomationv1.ReleaseBrowserSessionLeaseResponse{Session: session, Error: core.AutomationError(err)}, nil
+	}
+	return &browserautomationv1.ReleaseBrowserSessionLeaseResponse{Session: session}, nil
 }
 
 func (s *AutomationServer) StopBrowserSession(ctx context.Context, request *browserautomationv1.StopBrowserSessionRequest) (*browserautomationv1.StopBrowserSessionResponse, error) {
 	session, err := s.service.StopBrowserSession(ctx, request.GetSessionId(), request.GetReason())
 	if err != nil {
-		return &browserautomationv1.StopBrowserSessionResponse{Session: toProtoSession(session), Error: toProtoError(err)}, nil
+		return &browserautomationv1.StopBrowserSessionResponse{Session: session, Error: core.AutomationError(err)}, nil
 	}
-	return &browserautomationv1.StopBrowserSessionResponse{Session: toProtoSession(session)}, nil
+	return &browserautomationv1.StopBrowserSessionResponse{Session: session}, nil
 }
 
 func (s *AutomationServer) StartBrowserTask(ctx context.Context, request *browserautomationv1.StartBrowserTaskRequest) (*browserautomationv1.StartBrowserTaskResponse, error) {
-	task, err := s.service.StartBrowserTask(ctx, request.GetRequestId(), fromProtoTaskInput(request.GetInput()))
+	task, err := s.service.StartBrowserTask(ctx, request.GetRequestId(), request.GetInput())
 	if err != nil {
-		return &browserautomationv1.StartBrowserTaskResponse{Task: toProtoTask(task), Error: toProtoError(err)}, nil
+		return &browserautomationv1.StartBrowserTaskResponse{Task: task, Error: core.AutomationError(err)}, nil
 	}
-	return &browserautomationv1.StartBrowserTaskResponse{Task: toProtoTask(task)}, nil
+	return &browserautomationv1.StartBrowserTaskResponse{Task: task}, nil
+}
+
+func (s *AutomationServer) ExecuteBrowserCommands(ctx context.Context, request *browserautomationv1.ExecuteBrowserCommandsRequest) (*browserautomationv1.ExecuteBrowserCommandsResponse, error) {
+	task, err := s.service.ExecuteBrowserCommands(ctx, request.GetRequestId(), request.GetInput())
+	if err != nil {
+		return &browserautomationv1.ExecuteBrowserCommandsResponse{
+			Task:    task,
+			Results: taskResults(task),
+			Error:   core.AutomationError(err),
+		}, nil
+	}
+	return &browserautomationv1.ExecuteBrowserCommandsResponse{
+		Task:    task,
+		Results: taskResults(task),
+	}, nil
 }
 
 func (s *AutomationServer) GetBrowserTask(ctx context.Context, request *browserautomationv1.GetBrowserTaskRequest) (*browserautomationv1.GetBrowserTaskResponse, error) {
 	task, err := s.service.GetBrowserTask(ctx, request.GetTaskId())
 	if err != nil {
-		return &browserautomationv1.GetBrowserTaskResponse{Error: toProtoError(err)}, nil
+		return &browserautomationv1.GetBrowserTaskResponse{Error: core.AutomationError(err)}, nil
 	}
-	return &browserautomationv1.GetBrowserTaskResponse{Task: toProtoTask(task)}, nil
+	return &browserautomationv1.GetBrowserTaskResponse{Task: task}, nil
 }
 
 func (s *AutomationServer) ListBrowserTasks(ctx context.Context, request *browserautomationv1.ListBrowserTasksRequest) (*browserautomationv1.ListBrowserTasksResponse, error) {
-	result, err := s.service.ListBrowserTasks(ctx, fromProtoTaskFilter(request.GetFilter()), int(request.GetPageSize()), request.GetPageToken())
+	result, err := s.service.ListBrowserTasks(ctx, request.GetFilter(), int(request.GetPageSize()), request.GetPageToken())
 	if err != nil {
-		return &browserautomationv1.ListBrowserTasksResponse{Error: toProtoError(err)}, nil
+		return &browserautomationv1.ListBrowserTasksResponse{Error: core.AutomationError(err)}, nil
 	}
 	return &browserautomationv1.ListBrowserTasksResponse{
-		Tasks:         toProtoTasks(result.Tasks),
+		Tasks:         result.Tasks,
 		NextPageToken: result.NextPageToken,
 	}, nil
+}
+
+func protoDuration(value *durationpb.Duration) time.Duration {
+	if value == nil {
+		return 0
+	}
+	return value.AsDuration()
+}
+
+func taskResults(task *browserautomationv1.BrowserTask) []*browserautomationv1.BrowserCommandResult {
+	if task == nil {
+		return nil
+	}
+	return task.GetResults()
 }
