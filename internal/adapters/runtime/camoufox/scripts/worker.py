@@ -35,10 +35,14 @@ def main() -> None:
     artifacts_dir = Path(options["artifacts_dir"])
     artifacts_dir.mkdir(parents=True, exist_ok=True)
     context_options = options.get("context_options") or {}
+    init_scripts = options.get("init_scripts") or []
 
     with sync_playwright() as playwright:
         browser = playwright.firefox.connect(endpoint)
         context = browser.new_context(**context_options)
+        for script in init_scripts:
+            if script:
+                context.add_init_script(script)
         page = context.new_page()
         write_json({"type": "ready"})
         try:

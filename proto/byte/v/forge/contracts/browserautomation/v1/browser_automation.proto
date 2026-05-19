@@ -149,6 +149,8 @@ message BrowserProfile {
   BrowserViewport viewport = 5;
   string proxy_ref = 6;
   string storage_state_secret_ref = 7;
+  map<string, string> extra_http_headers = 8;
+  repeated string init_scripts = 9;
   map<string, string> labels = 20;
 }
 

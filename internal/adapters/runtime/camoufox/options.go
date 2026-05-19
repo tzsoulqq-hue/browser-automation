@@ -47,6 +47,9 @@ func workerOptions(endpoint string, cfg Config, session *browserautomationv1.Bro
 	if profile.GetUserAgent() != "" {
 		contextOptions["user_agent"] = profile.GetUserAgent()
 	}
+	if len(profile.GetExtraHttpHeaders()) > 0 {
+		contextOptions["extra_http_headers"] = profile.GetExtraHttpHeaders()
+	}
 	if viewport := profile.GetViewport(); viewport != nil && viewport.GetWidth() > 0 && viewport.GetHeight() > 0 {
 		contextOptions["viewport"] = map[string]int32{
 			"width":  viewport.GetWidth(),
@@ -60,6 +63,7 @@ func workerOptions(endpoint string, cfg Config, session *browserautomationv1.Bro
 		"endpoint":        endpoint,
 		"artifacts_dir":   cfg.ArtifactsDir,
 		"context_options": contextOptions,
+		"init_scripts":    profile.GetInitScripts(),
 	}
 }
 

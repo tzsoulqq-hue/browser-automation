@@ -97,7 +97,7 @@ runtime, err := camoufox.NewRuntime(camoufox.Config{
 })
 ```
 
-`BrowserProfile` 会映射到 Camoufox / Playwright 运行参数：`locale`、`timezone`、`user_agent`、`viewport`、`device_scale_factor`。`labels` 可设置 `camoufox.os`、`camoufox.geoip`、`camoufox.headless`、`camoufox.block_images`、`camoufox.block_webrtc`、`camoufox.block_webgl`、`camoufox.disable_coop`、`camoufox.main_world_eval`、`camoufox.enable_cache`、`camoufox.humanize`。
+`BrowserProfile` 会映射到 Camoufox / Playwright 运行参数：`locale`、`timezone`、`user_agent`、`viewport`、`device_scale_factor`、`extra_http_headers`、`init_scripts`。`labels` 可设置 `camoufox.os`、`camoufox.geoip`、`camoufox.headless`、`camoufox.block_images`、`camoufox.block_webrtc`、`camoufox.block_webgl`、`camoufox.disable_coop`、`camoufox.main_world_eval`、`camoufox.enable_cache`、`camoufox.humanize`。
 
 ## 后续建设
 
