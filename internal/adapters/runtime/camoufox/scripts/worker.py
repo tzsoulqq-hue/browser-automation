@@ -177,13 +177,13 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
             page.wait_for_timeout(hold_duration)
             page.mouse.up(button=button or "left")
             return succeeded_result(command, current_url=page.url), None
-        locator.click(**kwargs)
+        click_locator(locator, **kwargs)
         return succeeded_result(command, current_url=page.url), None
 
     if "fill" in command:
         payload = command["fill"]
         locator = resolve_command_locator(page, payload)
-        locator.fill(payload.get("value") or "", **timeout_kwargs(payload.get("timeout") or command.get("timeout")))
+        fill_locator(page, locator, payload.get("value") or "", payload.get("timeout") or command.get("timeout"))
         return succeeded_result(command, current_url=page.url), None
 
     if "set_checked" in command:
@@ -503,6 +503,51 @@ def has_command_locator(payload: Dict[str, Any]) -> bool:
     if selector.get("value"):
         return True
     return any((candidate or {}).get("value") for candidate in selector_group.get("selectors") or [])
+
+
+def click_locator(locator: Any, **kwargs: Any) -> None:
+    try:
+        locator.click(**kwargs)
+        return
+    except (PlaywrightError, PlaywrightTimeoutError):
+        pass
+    locator.first.evaluate("(el) => el.click()")
+
+
+def fill_locator(page: Any, locator: Any, value: str, timeout_value: Any) -> None:
+    kwargs = timeout_kwargs(timeout_value)
+    try:
+        locator.fill(value, **kwargs)
+        return
+    except (PlaywrightError, PlaywrightTimeoutError):
+        pass
+
+    try:
+        locator.first.evaluate(
+            """(el, value) => {
+                el.focus();
+                const proto = el instanceof HTMLTextAreaElement
+                    ? HTMLTextAreaElement.prototype
+                    : HTMLInputElement.prototype;
+                const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+                if (setter) {
+                    setter.call(el, value);
+                } else {
+                    el.value = value;
+                }
+                el.dispatchEvent(new Event("input", {bubbles: true}));
+                el.dispatchEvent(new Event("change", {bubbles: true}));
+            }""",
+            value,
+        )
+        return
+    except (PlaywrightError, PlaywrightTimeoutError):
+        pass
+
+    locator.first.focus(**kwargs)
+    page.keyboard.press("Control+A")
+    page.keyboard.press("Delete")
+    page.keyboard.type(value)
 
 
 def resolve_command_locator(page: Any, payload: Dict[str, Any]) -> Any:
