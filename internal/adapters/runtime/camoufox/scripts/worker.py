@@ -374,6 +374,24 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
             state["html"] = page.content()
         return succeeded_result(command, current_url=page.url, title=title, text=text, json_value=state), None
 
+    if "get_cookies" in command:
+        payload = command["get_cookies"]
+        urls = payload.get("urls") or []
+        if urls:
+            cookies = page.context.cookies(urls)
+        else:
+            cookies = page.context.cookies()
+        return succeeded_result(command, json_value={"cookies": json_safe(cookies)}, current_url=page.url), None
+
+    if "get_storage_state" in command:
+        payload = command["get_storage_state"]
+        state = page.context.storage_state()
+        if not payload.get("include_cookies", True):
+            state["cookies"] = []
+        if not payload.get("include_origins", True):
+            state["origins"] = []
+        return succeeded_result(command, json_value=json_safe(state), current_url=page.url), None
+
     if "extract_text" in command:
         payload = command["extract_text"]
         locator = resolve_command_locator(page, payload)

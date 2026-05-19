@@ -3528,6 +3528,102 @@ func (x *EvaluateCommand) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
+type GetCookiesCommand struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Urls          []string               `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCookiesCommand) Reset() {
+	*x = GetCookiesCommand{}
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCookiesCommand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCookiesCommand) ProtoMessage() {}
+
+func (x *GetCookiesCommand) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCookiesCommand.ProtoReflect.Descriptor instead.
+func (*GetCookiesCommand) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *GetCookiesCommand) GetUrls() []string {
+	if x != nil {
+		return x.Urls
+	}
+	return nil
+}
+
+type GetStorageStateCommand struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IncludeCookies bool                   `protobuf:"varint,1,opt,name=include_cookies,json=includeCookies,proto3" json:"include_cookies,omitempty"`
+	IncludeOrigins bool                   `protobuf:"varint,2,opt,name=include_origins,json=includeOrigins,proto3" json:"include_origins,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetStorageStateCommand) Reset() {
+	*x = GetStorageStateCommand{}
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStorageStateCommand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStorageStateCommand) ProtoMessage() {}
+
+func (x *GetStorageStateCommand) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStorageStateCommand.ProtoReflect.Descriptor instead.
+func (*GetStorageStateCommand) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GetStorageStateCommand) GetIncludeCookies() bool {
+	if x != nil {
+		return x.IncludeCookies
+	}
+	return false
+}
+
+func (x *GetStorageStateCommand) GetIncludeOrigins() bool {
+	if x != nil {
+		return x.IncludeOrigins
+	}
+	return false
+}
+
 type BrowserCommand struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	CommandId       string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
@@ -3571,6 +3667,8 @@ type BrowserCommand struct {
 	//	*BrowserCommand_Scroll
 	//	*BrowserCommand_GetPageState
 	//	*BrowserCommand_CountElements
+	//	*BrowserCommand_GetCookies
+	//	*BrowserCommand_GetStorageState
 	Operation     isBrowserCommand_Operation `protobuf_oneof:"operation"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3578,7 +3676,7 @@ type BrowserCommand struct {
 
 func (x *BrowserCommand) Reset() {
 	*x = BrowserCommand{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[42]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3590,7 +3688,7 @@ func (x *BrowserCommand) String() string {
 func (*BrowserCommand) ProtoMessage() {}
 
 func (x *BrowserCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[42]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3603,7 +3701,7 @@ func (x *BrowserCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserCommand.ProtoReflect.Descriptor instead.
 func (*BrowserCommand) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{42}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *BrowserCommand) GetCommandId() string {
@@ -3954,6 +4052,24 @@ func (x *BrowserCommand) GetCountElements() *CountElementsCommand {
 	return nil
 }
 
+func (x *BrowserCommand) GetGetCookies() *GetCookiesCommand {
+	if x != nil {
+		if x, ok := x.Operation.(*BrowserCommand_GetCookies); ok {
+			return x.GetCookies
+		}
+	}
+	return nil
+}
+
+func (x *BrowserCommand) GetGetStorageState() *GetStorageStateCommand {
+	if x != nil {
+		if x, ok := x.Operation.(*BrowserCommand_GetStorageState); ok {
+			return x.GetStorageState
+		}
+	}
+	return nil
+}
+
 type isBrowserCommand_Operation interface {
 	isBrowserCommand_Operation()
 }
@@ -4094,6 +4210,14 @@ type BrowserCommand_CountElements struct {
 	CountElements *CountElementsCommand `protobuf:"bytes,44,opt,name=count_elements,json=countElements,proto3,oneof"`
 }
 
+type BrowserCommand_GetCookies struct {
+	GetCookies *GetCookiesCommand `protobuf:"bytes,45,opt,name=get_cookies,json=getCookies,proto3,oneof"`
+}
+
+type BrowserCommand_GetStorageState struct {
+	GetStorageState *GetStorageStateCommand `protobuf:"bytes,46,opt,name=get_storage_state,json=getStorageState,proto3,oneof"`
+}
+
 func (*BrowserCommand_Navigate) isBrowserCommand_Operation() {}
 
 func (*BrowserCommand_Click) isBrowserCommand_Operation() {}
@@ -4162,6 +4286,10 @@ func (*BrowserCommand_GetPageState) isBrowserCommand_Operation() {}
 
 func (*BrowserCommand_CountElements) isBrowserCommand_Operation() {}
 
+func (*BrowserCommand_GetCookies) isBrowserCommand_Operation() {}
+
+func (*BrowserCommand_GetStorageState) isBrowserCommand_Operation() {}
+
 type BrowserCommandResult struct {
 	state          protoimpl.MessageState  `protogen:"open.v1"`
 	CommandId      string                  `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
@@ -4186,7 +4314,7 @@ type BrowserCommandResult struct {
 
 func (x *BrowserCommandResult) Reset() {
 	*x = BrowserCommandResult{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[43]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4198,7 +4326,7 @@ func (x *BrowserCommandResult) String() string {
 func (*BrowserCommandResult) ProtoMessage() {}
 
 func (x *BrowserCommandResult) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[43]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4211,7 +4339,7 @@ func (x *BrowserCommandResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserCommandResult.ProtoReflect.Descriptor instead.
 func (*BrowserCommandResult) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{43}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *BrowserCommandResult) GetCommandId() string {
@@ -4346,7 +4474,7 @@ type BrowserSession struct {
 
 func (x *BrowserSession) Reset() {
 	*x = BrowserSession{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[44]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4358,7 +4486,7 @@ func (x *BrowserSession) String() string {
 func (*BrowserSession) ProtoMessage() {}
 
 func (x *BrowserSession) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[44]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4371,7 +4499,7 @@ func (x *BrowserSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserSession.ProtoReflect.Descriptor instead.
 func (*BrowserSession) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{44}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *BrowserSession) GetSessionId() string {
@@ -4473,7 +4601,7 @@ type BrowserTaskInput struct {
 
 func (x *BrowserTaskInput) Reset() {
 	*x = BrowserTaskInput{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[45]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4485,7 +4613,7 @@ func (x *BrowserTaskInput) String() string {
 func (*BrowserTaskInput) ProtoMessage() {}
 
 func (x *BrowserTaskInput) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[45]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4498,7 +4626,7 @@ func (x *BrowserTaskInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserTaskInput.ProtoReflect.Descriptor instead.
 func (*BrowserTaskInput) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{45}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *BrowserTaskInput) GetSessionId() string {
@@ -4570,7 +4698,7 @@ type BrowserTask struct {
 
 func (x *BrowserTask) Reset() {
 	*x = BrowserTask{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[46]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4582,7 +4710,7 @@ func (x *BrowserTask) String() string {
 func (*BrowserTask) ProtoMessage() {}
 
 func (x *BrowserTask) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[46]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4595,7 +4723,7 @@ func (x *BrowserTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserTask.ProtoReflect.Descriptor instead.
 func (*BrowserTask) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{46}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *BrowserTask) GetTaskId() string {
@@ -4698,7 +4826,7 @@ type BrowserTaskFilter struct {
 
 func (x *BrowserTaskFilter) Reset() {
 	*x = BrowserTaskFilter{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[47]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4710,7 +4838,7 @@ func (x *BrowserTaskFilter) String() string {
 func (*BrowserTaskFilter) ProtoMessage() {}
 
 func (x *BrowserTaskFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[47]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4723,7 +4851,7 @@ func (x *BrowserTaskFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserTaskFilter.ProtoReflect.Descriptor instead.
 func (*BrowserTaskFilter) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{47}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *BrowserTaskFilter) GetSessionId() string {
@@ -4793,7 +4921,7 @@ type StartBrowserSessionRequest struct {
 
 func (x *StartBrowserSessionRequest) Reset() {
 	*x = StartBrowserSessionRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[48]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4805,7 +4933,7 @@ func (x *StartBrowserSessionRequest) String() string {
 func (*StartBrowserSessionRequest) ProtoMessage() {}
 
 func (x *StartBrowserSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[48]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4818,7 +4946,7 @@ func (x *StartBrowserSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBrowserSessionRequest.ProtoReflect.Descriptor instead.
 func (*StartBrowserSessionRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{48}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *StartBrowserSessionRequest) GetRequestId() string {
@@ -4852,7 +4980,7 @@ type StartBrowserSessionResponse struct {
 
 func (x *StartBrowserSessionResponse) Reset() {
 	*x = StartBrowserSessionResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[49]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4864,7 +4992,7 @@ func (x *StartBrowserSessionResponse) String() string {
 func (*StartBrowserSessionResponse) ProtoMessage() {}
 
 func (x *StartBrowserSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[49]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4877,7 +5005,7 @@ func (x *StartBrowserSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBrowserSessionResponse.ProtoReflect.Descriptor instead.
 func (*StartBrowserSessionResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{49}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *StartBrowserSessionResponse) GetSession() *BrowserSession {
@@ -4903,7 +5031,7 @@ type GetBrowserSessionRequest struct {
 
 func (x *GetBrowserSessionRequest) Reset() {
 	*x = GetBrowserSessionRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[50]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4915,7 +5043,7 @@ func (x *GetBrowserSessionRequest) String() string {
 func (*GetBrowserSessionRequest) ProtoMessage() {}
 
 func (x *GetBrowserSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[50]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4928,7 +5056,7 @@ func (x *GetBrowserSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBrowserSessionRequest.ProtoReflect.Descriptor instead.
 func (*GetBrowserSessionRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{50}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetBrowserSessionRequest) GetSessionId() string {
@@ -4948,7 +5076,7 @@ type GetBrowserSessionResponse struct {
 
 func (x *GetBrowserSessionResponse) Reset() {
 	*x = GetBrowserSessionResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[51]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4960,7 +5088,7 @@ func (x *GetBrowserSessionResponse) String() string {
 func (*GetBrowserSessionResponse) ProtoMessage() {}
 
 func (x *GetBrowserSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[51]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4973,7 +5101,7 @@ func (x *GetBrowserSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBrowserSessionResponse.ProtoReflect.Descriptor instead.
 func (*GetBrowserSessionResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{51}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetBrowserSessionResponse) GetSession() *BrowserSession {
@@ -5000,7 +5128,7 @@ type StopBrowserSessionRequest struct {
 
 func (x *StopBrowserSessionRequest) Reset() {
 	*x = StopBrowserSessionRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[52]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5012,7 +5140,7 @@ func (x *StopBrowserSessionRequest) String() string {
 func (*StopBrowserSessionRequest) ProtoMessage() {}
 
 func (x *StopBrowserSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[52]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5025,7 +5153,7 @@ func (x *StopBrowserSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopBrowserSessionRequest.ProtoReflect.Descriptor instead.
 func (*StopBrowserSessionRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{52}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *StopBrowserSessionRequest) GetSessionId() string {
@@ -5052,7 +5180,7 @@ type StopBrowserSessionResponse struct {
 
 func (x *StopBrowserSessionResponse) Reset() {
 	*x = StopBrowserSessionResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[53]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5064,7 +5192,7 @@ func (x *StopBrowserSessionResponse) String() string {
 func (*StopBrowserSessionResponse) ProtoMessage() {}
 
 func (x *StopBrowserSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[53]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5077,7 +5205,7 @@ func (x *StopBrowserSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopBrowserSessionResponse.ProtoReflect.Descriptor instead.
 func (*StopBrowserSessionResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{53}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *StopBrowserSessionResponse) GetSession() *BrowserSession {
@@ -5104,7 +5232,7 @@ type StartBrowserTaskRequest struct {
 
 func (x *StartBrowserTaskRequest) Reset() {
 	*x = StartBrowserTaskRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[54]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5116,7 +5244,7 @@ func (x *StartBrowserTaskRequest) String() string {
 func (*StartBrowserTaskRequest) ProtoMessage() {}
 
 func (x *StartBrowserTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[54]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5129,7 +5257,7 @@ func (x *StartBrowserTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBrowserTaskRequest.ProtoReflect.Descriptor instead.
 func (*StartBrowserTaskRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{54}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *StartBrowserTaskRequest) GetRequestId() string {
@@ -5156,7 +5284,7 @@ type StartBrowserTaskResponse struct {
 
 func (x *StartBrowserTaskResponse) Reset() {
 	*x = StartBrowserTaskResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[55]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5168,7 +5296,7 @@ func (x *StartBrowserTaskResponse) String() string {
 func (*StartBrowserTaskResponse) ProtoMessage() {}
 
 func (x *StartBrowserTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[55]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5181,7 +5309,7 @@ func (x *StartBrowserTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBrowserTaskResponse.ProtoReflect.Descriptor instead.
 func (*StartBrowserTaskResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{55}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *StartBrowserTaskResponse) GetTask() *BrowserTask {
@@ -5208,7 +5336,7 @@ type ExecuteBrowserCommandsRequest struct {
 
 func (x *ExecuteBrowserCommandsRequest) Reset() {
 	*x = ExecuteBrowserCommandsRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[56]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5220,7 +5348,7 @@ func (x *ExecuteBrowserCommandsRequest) String() string {
 func (*ExecuteBrowserCommandsRequest) ProtoMessage() {}
 
 func (x *ExecuteBrowserCommandsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[56]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5233,7 +5361,7 @@ func (x *ExecuteBrowserCommandsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteBrowserCommandsRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteBrowserCommandsRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{56}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ExecuteBrowserCommandsRequest) GetRequestId() string {
@@ -5261,7 +5389,7 @@ type ExecuteBrowserCommandsResponse struct {
 
 func (x *ExecuteBrowserCommandsResponse) Reset() {
 	*x = ExecuteBrowserCommandsResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[57]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5273,7 +5401,7 @@ func (x *ExecuteBrowserCommandsResponse) String() string {
 func (*ExecuteBrowserCommandsResponse) ProtoMessage() {}
 
 func (x *ExecuteBrowserCommandsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[57]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5286,7 +5414,7 @@ func (x *ExecuteBrowserCommandsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteBrowserCommandsResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteBrowserCommandsResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{57}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ExecuteBrowserCommandsResponse) GetTask() *BrowserTask {
@@ -5319,7 +5447,7 @@ type GetBrowserTaskRequest struct {
 
 func (x *GetBrowserTaskRequest) Reset() {
 	*x = GetBrowserTaskRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[58]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5331,7 +5459,7 @@ func (x *GetBrowserTaskRequest) String() string {
 func (*GetBrowserTaskRequest) ProtoMessage() {}
 
 func (x *GetBrowserTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[58]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5344,7 +5472,7 @@ func (x *GetBrowserTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBrowserTaskRequest.ProtoReflect.Descriptor instead.
 func (*GetBrowserTaskRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{58}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetBrowserTaskRequest) GetTaskId() string {
@@ -5364,7 +5492,7 @@ type GetBrowserTaskResponse struct {
 
 func (x *GetBrowserTaskResponse) Reset() {
 	*x = GetBrowserTaskResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[59]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5376,7 +5504,7 @@ func (x *GetBrowserTaskResponse) String() string {
 func (*GetBrowserTaskResponse) ProtoMessage() {}
 
 func (x *GetBrowserTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[59]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5389,7 +5517,7 @@ func (x *GetBrowserTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBrowserTaskResponse.ProtoReflect.Descriptor instead.
 func (*GetBrowserTaskResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{59}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetBrowserTaskResponse) GetTask() *BrowserTask {
@@ -5417,7 +5545,7 @@ type ListBrowserTasksRequest struct {
 
 func (x *ListBrowserTasksRequest) Reset() {
 	*x = ListBrowserTasksRequest{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[60]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5429,7 +5557,7 @@ func (x *ListBrowserTasksRequest) String() string {
 func (*ListBrowserTasksRequest) ProtoMessage() {}
 
 func (x *ListBrowserTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[60]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5442,7 +5570,7 @@ func (x *ListBrowserTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBrowserTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListBrowserTasksRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{60}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListBrowserTasksRequest) GetFilter() *BrowserTaskFilter {
@@ -5477,7 +5605,7 @@ type ListBrowserTasksResponse struct {
 
 func (x *ListBrowserTasksResponse) Reset() {
 	*x = ListBrowserTasksResponse{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[61]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5489,7 +5617,7 @@ func (x *ListBrowserTasksResponse) String() string {
 func (*ListBrowserTasksResponse) ProtoMessage() {}
 
 func (x *ListBrowserTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[61]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5502,7 +5630,7 @@ func (x *ListBrowserTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBrowserTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListBrowserTasksResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{61}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListBrowserTasksResponse) GetTasks() []*BrowserTask {
@@ -5541,7 +5669,7 @@ type BrowserAutomationEventContext struct {
 
 func (x *BrowserAutomationEventContext) Reset() {
 	*x = BrowserAutomationEventContext{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[62]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5553,7 +5681,7 @@ func (x *BrowserAutomationEventContext) String() string {
 func (*BrowserAutomationEventContext) ProtoMessage() {}
 
 func (x *BrowserAutomationEventContext) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[62]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5566,7 +5694,7 @@ func (x *BrowserAutomationEventContext) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserAutomationEventContext.ProtoReflect.Descriptor instead.
 func (*BrowserAutomationEventContext) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{62}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *BrowserAutomationEventContext) GetEventId() string {
@@ -5628,7 +5756,7 @@ type BrowserSessionStartedEvent struct {
 
 func (x *BrowserSessionStartedEvent) Reset() {
 	*x = BrowserSessionStartedEvent{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[63]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5640,7 +5768,7 @@ func (x *BrowserSessionStartedEvent) String() string {
 func (*BrowserSessionStartedEvent) ProtoMessage() {}
 
 func (x *BrowserSessionStartedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[63]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5653,7 +5781,7 @@ func (x *BrowserSessionStartedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserSessionStartedEvent.ProtoReflect.Descriptor instead.
 func (*BrowserSessionStartedEvent) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{63}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *BrowserSessionStartedEvent) GetContext() *BrowserAutomationEventContext {
@@ -5682,7 +5810,7 @@ type BrowserSessionStoppedEvent struct {
 
 func (x *BrowserSessionStoppedEvent) Reset() {
 	*x = BrowserSessionStoppedEvent{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[64]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5694,7 +5822,7 @@ func (x *BrowserSessionStoppedEvent) String() string {
 func (*BrowserSessionStoppedEvent) ProtoMessage() {}
 
 func (x *BrowserSessionStoppedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[64]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5707,7 +5835,7 @@ func (x *BrowserSessionStoppedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserSessionStoppedEvent.ProtoReflect.Descriptor instead.
 func (*BrowserSessionStoppedEvent) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{64}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *BrowserSessionStoppedEvent) GetContext() *BrowserAutomationEventContext {
@@ -5751,7 +5879,7 @@ type BrowserTaskStatusChangedEvent struct {
 
 func (x *BrowserTaskStatusChangedEvent) Reset() {
 	*x = BrowserTaskStatusChangedEvent{}
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[65]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5763,7 +5891,7 @@ func (x *BrowserTaskStatusChangedEvent) String() string {
 func (*BrowserTaskStatusChangedEvent) ProtoMessage() {}
 
 func (x *BrowserTaskStatusChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[65]
+	mi := &file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5776,7 +5904,7 @@ func (x *BrowserTaskStatusChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BrowserTaskStatusChangedEvent.ProtoReflect.Descriptor instead.
 func (*BrowserTaskStatusChangedEvent) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{65}
+	return file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *BrowserTaskStatusChangedEvent) GetContext() *BrowserAutomationEventContext {
@@ -6051,7 +6179,12 @@ const file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_
 	"expression\x18\x01 \x01(\tR\n" +
 	"expression\x12+\n" +
 	"\x04args\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x04args\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x8b\x1c\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"'\n" +
+	"\x11GetCookiesCommand\x12\x12\n" +
+	"\x04urls\x18\x01 \x03(\tR\x04urls\"j\n" +
+	"\x16GetStorageStateCommand\x12'\n" +
+	"\x0finclude_cookies\x18\x01 \x01(\bR\x0eincludeCookies\x12'\n" +
+	"\x0finclude_origins\x18\x02 \x01(\bR\x0eincludeOrigins\"\xe1\x1d\n" +
 	"\x0eBrowserCommand\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12\x1f\n" +
@@ -6104,7 +6237,10 @@ const file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_
 	"setChecked\x12T\n" +
 	"\x06scroll\x18* \x01(\v2:.byte.v.forge.contracts.browserautomation.v1.ScrollCommandH\x00R\x06scroll\x12h\n" +
 	"\x0eget_page_state\x18+ \x01(\v2@.byte.v.forge.contracts.browserautomation.v1.GetPageStateCommandH\x00R\fgetPageState\x12j\n" +
-	"\x0ecount_elements\x18, \x01(\v2A.byte.v.forge.contracts.browserautomation.v1.CountElementsCommandH\x00R\rcountElements\x1a9\n" +
+	"\x0ecount_elements\x18, \x01(\v2A.byte.v.forge.contracts.browserautomation.v1.CountElementsCommandH\x00R\rcountElements\x12a\n" +
+	"\vget_cookies\x18- \x01(\v2>.byte.v.forge.contracts.browserautomation.v1.GetCookiesCommandH\x00R\n" +
+	"getCookies\x12q\n" +
+	"\x11get_storage_state\x18. \x01(\v2C.byte.v.forge.contracts.browserautomation.v1.GetStorageStateCommandH\x00R\x0fgetStorageState\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\v\n" +
@@ -6386,7 +6522,7 @@ func file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_r
 }
 
 var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
-var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
+var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes = make([]protoimpl.MessageInfo, 75)
 var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_goTypes = []any{
 	(BrowserAutomationErrorCode)(0),        // 0: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationErrorCode
 	(BrowserKind)(0),                       // 1: byte.v.forge.contracts.browserautomation.v1.BrowserKind
@@ -6441,151 +6577,153 @@ var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_go
 	(*SelectOptionCommand)(nil),            // 50: byte.v.forge.contracts.browserautomation.v1.SelectOptionCommand
 	(*SubmitFormCommand)(nil),              // 51: byte.v.forge.contracts.browserautomation.v1.SubmitFormCommand
 	(*EvaluateCommand)(nil),                // 52: byte.v.forge.contracts.browserautomation.v1.EvaluateCommand
-	(*BrowserCommand)(nil),                 // 53: byte.v.forge.contracts.browserautomation.v1.BrowserCommand
-	(*BrowserCommandResult)(nil),           // 54: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
-	(*BrowserSession)(nil),                 // 55: byte.v.forge.contracts.browserautomation.v1.BrowserSession
-	(*BrowserTaskInput)(nil),               // 56: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
-	(*BrowserTask)(nil),                    // 57: byte.v.forge.contracts.browserautomation.v1.BrowserTask
-	(*BrowserTaskFilter)(nil),              // 58: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter
-	(*StartBrowserSessionRequest)(nil),     // 59: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest
-	(*StartBrowserSessionResponse)(nil),    // 60: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse
-	(*GetBrowserSessionRequest)(nil),       // 61: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionRequest
-	(*GetBrowserSessionResponse)(nil),      // 62: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse
-	(*StopBrowserSessionRequest)(nil),      // 63: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionRequest
-	(*StopBrowserSessionResponse)(nil),     // 64: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse
-	(*StartBrowserTaskRequest)(nil),        // 65: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest
-	(*StartBrowserTaskResponse)(nil),       // 66: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse
-	(*ExecuteBrowserCommandsRequest)(nil),  // 67: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest
-	(*ExecuteBrowserCommandsResponse)(nil), // 68: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse
-	(*GetBrowserTaskRequest)(nil),          // 69: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskRequest
-	(*GetBrowserTaskResponse)(nil),         // 70: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse
-	(*ListBrowserTasksRequest)(nil),        // 71: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest
-	(*ListBrowserTasksResponse)(nil),       // 72: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse
-	(*BrowserAutomationEventContext)(nil),  // 73: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
-	(*BrowserSessionStartedEvent)(nil),     // 74: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent
-	(*BrowserSessionStoppedEvent)(nil),     // 75: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent
-	(*BrowserTaskStatusChangedEvent)(nil),  // 76: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent
-	nil,                                    // 77: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.LabelsEntry
-	nil,                                    // 78: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.LabelsEntry
-	nil,                                    // 79: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.LabelsEntry
-	nil,                                    // 80: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.AttributesEntry
-	nil,                                    // 81: byte.v.forge.contracts.browserautomation.v1.BrowserSession.LabelsEntry
-	nil,                                    // 82: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.LabelsEntry
-	nil,                                    // 83: byte.v.forge.contracts.browserautomation.v1.BrowserTask.LabelsEntry
-	(*timestamppb.Timestamp)(nil),          // 84: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),            // 85: google.protobuf.Duration
-	(*structpb.Struct)(nil),                // 86: google.protobuf.Struct
-	(*structpb.Value)(nil),                 // 87: google.protobuf.Value
+	(*GetCookiesCommand)(nil),              // 53: byte.v.forge.contracts.browserautomation.v1.GetCookiesCommand
+	(*GetStorageStateCommand)(nil),         // 54: byte.v.forge.contracts.browserautomation.v1.GetStorageStateCommand
+	(*BrowserCommand)(nil),                 // 55: byte.v.forge.contracts.browserautomation.v1.BrowserCommand
+	(*BrowserCommandResult)(nil),           // 56: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
+	(*BrowserSession)(nil),                 // 57: byte.v.forge.contracts.browserautomation.v1.BrowserSession
+	(*BrowserTaskInput)(nil),               // 58: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
+	(*BrowserTask)(nil),                    // 59: byte.v.forge.contracts.browserautomation.v1.BrowserTask
+	(*BrowserTaskFilter)(nil),              // 60: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter
+	(*StartBrowserSessionRequest)(nil),     // 61: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest
+	(*StartBrowserSessionResponse)(nil),    // 62: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse
+	(*GetBrowserSessionRequest)(nil),       // 63: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionRequest
+	(*GetBrowserSessionResponse)(nil),      // 64: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse
+	(*StopBrowserSessionRequest)(nil),      // 65: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionRequest
+	(*StopBrowserSessionResponse)(nil),     // 66: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse
+	(*StartBrowserTaskRequest)(nil),        // 67: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest
+	(*StartBrowserTaskResponse)(nil),       // 68: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse
+	(*ExecuteBrowserCommandsRequest)(nil),  // 69: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest
+	(*ExecuteBrowserCommandsResponse)(nil), // 70: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse
+	(*GetBrowserTaskRequest)(nil),          // 71: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskRequest
+	(*GetBrowserTaskResponse)(nil),         // 72: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse
+	(*ListBrowserTasksRequest)(nil),        // 73: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest
+	(*ListBrowserTasksResponse)(nil),       // 74: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse
+	(*BrowserAutomationEventContext)(nil),  // 75: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
+	(*BrowserSessionStartedEvent)(nil),     // 76: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent
+	(*BrowserSessionStoppedEvent)(nil),     // 77: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent
+	(*BrowserTaskStatusChangedEvent)(nil),  // 78: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent
+	nil,                                    // 79: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.LabelsEntry
+	nil,                                    // 80: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.LabelsEntry
+	nil,                                    // 81: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.LabelsEntry
+	nil,                                    // 82: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.AttributesEntry
+	nil,                                    // 83: byte.v.forge.contracts.browserautomation.v1.BrowserSession.LabelsEntry
+	nil,                                    // 84: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.LabelsEntry
+	nil,                                    // 85: byte.v.forge.contracts.browserautomation.v1.BrowserTask.LabelsEntry
+	(*timestamppb.Timestamp)(nil),          // 86: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),            // 87: google.protobuf.Duration
+	(*structpb.Struct)(nil),                // 88: google.protobuf.Struct
+	(*structpb.Value)(nil),                 // 89: google.protobuf.Value
 }
 var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_depIdxs = []int32{
 	0,   // 0: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError.code:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationErrorCode
 	1,   // 1: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.browser_kind:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserKind
 	12,  // 2: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.viewport:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserViewport
-	77,  // 3: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile.LabelsEntry
+	79,  // 3: byte.v.forge.contracts.browserautomation.v1.BrowserProfile.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile.LabelsEntry
 	10,  // 4: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.kind:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifactKind
-	78,  // 5: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.LabelsEntry
-	84,  // 6: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.created_at:type_name -> google.protobuf.Timestamp
+	80,  // 5: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.LabelsEntry
+	86,  // 6: byte.v.forge.contracts.browserautomation.v1.BrowserArtifact.created_at:type_name -> google.protobuf.Timestamp
 	5,   // 7: byte.v.forge.contracts.browserautomation.v1.BrowserSelector.kind:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorKind
-	85,  // 8: byte.v.forge.contracts.browserautomation.v1.BrowserSelector.timeout:type_name -> google.protobuf.Duration
+	87,  // 8: byte.v.forge.contracts.browserautomation.v1.BrowserSelector.timeout:type_name -> google.protobuf.Duration
 	15,  // 9: byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup.selectors:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 10: byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup.timeout:type_name -> google.protobuf.Duration
+	87,  // 10: byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup.timeout:type_name -> google.protobuf.Duration
 	7,   // 11: byte.v.forge.contracts.browserautomation.v1.NavigateCommand.wait_until:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserNavigationWaitUntil
-	85,  // 12: byte.v.forge.contracts.browserautomation.v1.NavigateCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 12: byte.v.forge.contracts.browserautomation.v1.NavigateCommand.timeout:type_name -> google.protobuf.Duration
 	7,   // 13: byte.v.forge.contracts.browserautomation.v1.ReloadCommand.wait_until:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserNavigationWaitUntil
-	85,  // 14: byte.v.forge.contracts.browserautomation.v1.ReloadCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 14: byte.v.forge.contracts.browserautomation.v1.ReloadCommand.timeout:type_name -> google.protobuf.Duration
 	7,   // 15: byte.v.forge.contracts.browserautomation.v1.GoBackCommand.wait_until:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserNavigationWaitUntil
-	85,  // 16: byte.v.forge.contracts.browserautomation.v1.GoBackCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 16: byte.v.forge.contracts.browserautomation.v1.GoBackCommand.timeout:type_name -> google.protobuf.Duration
 	7,   // 17: byte.v.forge.contracts.browserautomation.v1.GoForwardCommand.wait_until:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserNavigationWaitUntil
-	85,  // 18: byte.v.forge.contracts.browserautomation.v1.GoForwardCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 18: byte.v.forge.contracts.browserautomation.v1.GoForwardCommand.timeout:type_name -> google.protobuf.Duration
 	15,  // 19: byte.v.forge.contracts.browserautomation.v1.ClickCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 20: byte.v.forge.contracts.browserautomation.v1.ClickCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 20: byte.v.forge.contracts.browserautomation.v1.ClickCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 21: byte.v.forge.contracts.browserautomation.v1.ClickCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	9,   // 22: byte.v.forge.contracts.browserautomation.v1.ClickCommand.button:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserMouseButton
 	17,  // 23: byte.v.forge.contracts.browserautomation.v1.ClickCommand.position:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
-	85,  // 24: byte.v.forge.contracts.browserautomation.v1.ClickCommand.delay:type_name -> google.protobuf.Duration
-	85,  // 25: byte.v.forge.contracts.browserautomation.v1.ClickCommand.hold_duration:type_name -> google.protobuf.Duration
+	87,  // 24: byte.v.forge.contracts.browserautomation.v1.ClickCommand.delay:type_name -> google.protobuf.Duration
+	87,  // 25: byte.v.forge.contracts.browserautomation.v1.ClickCommand.hold_duration:type_name -> google.protobuf.Duration
 	15,  // 26: byte.v.forge.contracts.browserautomation.v1.FillCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 27: byte.v.forge.contracts.browserautomation.v1.FillCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 27: byte.v.forge.contracts.browserautomation.v1.FillCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 28: byte.v.forge.contracts.browserautomation.v1.FillCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 29: byte.v.forge.contracts.browserautomation.v1.SetCheckedCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 30: byte.v.forge.contracts.browserautomation.v1.SetCheckedCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 30: byte.v.forge.contracts.browserautomation.v1.SetCheckedCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 31: byte.v.forge.contracts.browserautomation.v1.SetCheckedCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 32: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 33: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.delay:type_name -> google.protobuf.Duration
-	85,  // 34: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 33: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.delay:type_name -> google.protobuf.Duration
+	87,  // 34: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 35: byte.v.forge.contracts.browserautomation.v1.TypeTextCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 36: byte.v.forge.contracts.browserautomation.v1.ClearCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 37: byte.v.forge.contracts.browserautomation.v1.ClearCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 37: byte.v.forge.contracts.browserautomation.v1.ClearCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 38: byte.v.forge.contracts.browserautomation.v1.ClearCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 39: byte.v.forge.contracts.browserautomation.v1.PressCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 40: byte.v.forge.contracts.browserautomation.v1.PressCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 40: byte.v.forge.contracts.browserautomation.v1.PressCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 41: byte.v.forge.contracts.browserautomation.v1.PressCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 42: byte.v.forge.contracts.browserautomation.v1.FocusCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 43: byte.v.forge.contracts.browserautomation.v1.FocusCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 43: byte.v.forge.contracts.browserautomation.v1.FocusCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 44: byte.v.forge.contracts.browserautomation.v1.FocusCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 45: byte.v.forge.contracts.browserautomation.v1.BlurCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 46: byte.v.forge.contracts.browserautomation.v1.BlurCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 46: byte.v.forge.contracts.browserautomation.v1.BlurCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 47: byte.v.forge.contracts.browserautomation.v1.BlurCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 48: byte.v.forge.contracts.browserautomation.v1.HoverCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
 	17,  // 49: byte.v.forge.contracts.browserautomation.v1.HoverCommand.position:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
-	85,  // 50: byte.v.forge.contracts.browserautomation.v1.HoverCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 50: byte.v.forge.contracts.browserautomation.v1.HoverCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 51: byte.v.forge.contracts.browserautomation.v1.HoverCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	17,  // 52: byte.v.forge.contracts.browserautomation.v1.MouseMoveCommand.point:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
 	17,  // 53: byte.v.forge.contracts.browserautomation.v1.MouseMoveCommand.path:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
-	85,  // 54: byte.v.forge.contracts.browserautomation.v1.MouseMoveCommand.duration:type_name -> google.protobuf.Duration
+	87,  // 54: byte.v.forge.contracts.browserautomation.v1.MouseMoveCommand.duration:type_name -> google.protobuf.Duration
 	17,  // 55: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.point:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
 	9,   // 56: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.button:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserMouseButton
-	85,  // 57: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.delay:type_name -> google.protobuf.Duration
-	85,  // 58: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.hold_duration:type_name -> google.protobuf.Duration
+	87,  // 57: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.delay:type_name -> google.protobuf.Duration
+	87,  // 58: byte.v.forge.contracts.browserautomation.v1.MouseClickCommand.hold_duration:type_name -> google.protobuf.Duration
 	9,   // 59: byte.v.forge.contracts.browserautomation.v1.MouseDownCommand.button:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserMouseButton
 	9,   // 60: byte.v.forge.contracts.browserautomation.v1.MouseUpCommand.button:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserMouseButton
 	15,  // 61: byte.v.forge.contracts.browserautomation.v1.DragCommand.source_selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
 	15,  // 62: byte.v.forge.contracts.browserautomation.v1.DragCommand.target_selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
 	17,  // 63: byte.v.forge.contracts.browserautomation.v1.DragCommand.source_point:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
 	17,  // 64: byte.v.forge.contracts.browserautomation.v1.DragCommand.target_point:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserPoint
-	85,  // 65: byte.v.forge.contracts.browserautomation.v1.DragCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 65: byte.v.forge.contracts.browserautomation.v1.DragCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 66: byte.v.forge.contracts.browserautomation.v1.DragCommand.source_selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	16,  // 67: byte.v.forge.contracts.browserautomation.v1.DragCommand.target_selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 68: byte.v.forge.contracts.browserautomation.v1.ScrollCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
 	16,  // 69: byte.v.forge.contracts.browserautomation.v1.ScrollCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
-	85,  // 70: byte.v.forge.contracts.browserautomation.v1.ScrollCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 70: byte.v.forge.contracts.browserautomation.v1.ScrollCommand.timeout:type_name -> google.protobuf.Duration
 	15,  // 71: byte.v.forge.contracts.browserautomation.v1.WaitForSelectorCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
 	6,   // 72: byte.v.forge.contracts.browserautomation.v1.WaitForSelectorCommand.state:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorState
-	85,  // 73: byte.v.forge.contracts.browserautomation.v1.WaitForSelectorCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 73: byte.v.forge.contracts.browserautomation.v1.WaitForSelectorCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 74: byte.v.forge.contracts.browserautomation.v1.WaitForSelectorCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
-	85,  // 75: byte.v.forge.contracts.browserautomation.v1.WaitForTextCommand.timeout:type_name -> google.protobuf.Duration
-	85,  // 76: byte.v.forge.contracts.browserautomation.v1.WaitForURLCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 75: byte.v.forge.contracts.browserautomation.v1.WaitForTextCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 76: byte.v.forge.contracts.browserautomation.v1.WaitForURLCommand.timeout:type_name -> google.protobuf.Duration
 	8,   // 77: byte.v.forge.contracts.browserautomation.v1.WaitForLoadStateCommand.state:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserLoadState
-	85,  // 78: byte.v.forge.contracts.browserautomation.v1.WaitForLoadStateCommand.timeout:type_name -> google.protobuf.Duration
-	85,  // 79: byte.v.forge.contracts.browserautomation.v1.WaitForTimeoutCommand.duration:type_name -> google.protobuf.Duration
+	87,  // 78: byte.v.forge.contracts.browserautomation.v1.WaitForLoadStateCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 79: byte.v.forge.contracts.browserautomation.v1.WaitForTimeoutCommand.duration:type_name -> google.protobuf.Duration
 	15,  // 80: byte.v.forge.contracts.browserautomation.v1.ExtractTextCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 81: byte.v.forge.contracts.browserautomation.v1.ExtractTextCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 81: byte.v.forge.contracts.browserautomation.v1.ExtractTextCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 82: byte.v.forge.contracts.browserautomation.v1.ExtractTextCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 83: byte.v.forge.contracts.browserautomation.v1.GetAttributeCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 84: byte.v.forge.contracts.browserautomation.v1.GetAttributeCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 84: byte.v.forge.contracts.browserautomation.v1.GetAttributeCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 85: byte.v.forge.contracts.browserautomation.v1.GetAttributeCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 86: byte.v.forge.contracts.browserautomation.v1.CountElementsCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 87: byte.v.forge.contracts.browserautomation.v1.CountElementsCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 87: byte.v.forge.contracts.browserautomation.v1.CountElementsCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 88: byte.v.forge.contracts.browserautomation.v1.CountElementsCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 89: byte.v.forge.contracts.browserautomation.v1.ExtractElementCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 90: byte.v.forge.contracts.browserautomation.v1.ExtractElementCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 90: byte.v.forge.contracts.browserautomation.v1.ExtractElementCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 91: byte.v.forge.contracts.browserautomation.v1.ExtractElementCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 92: byte.v.forge.contracts.browserautomation.v1.ScreenshotCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 93: byte.v.forge.contracts.browserautomation.v1.ScreenshotCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 93: byte.v.forge.contracts.browserautomation.v1.ScreenshotCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 94: byte.v.forge.contracts.browserautomation.v1.ScreenshotCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 95: byte.v.forge.contracts.browserautomation.v1.UploadFileCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 96: byte.v.forge.contracts.browserautomation.v1.UploadFileCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 96: byte.v.forge.contracts.browserautomation.v1.UploadFileCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 97: byte.v.forge.contracts.browserautomation.v1.UploadFileCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 98: byte.v.forge.contracts.browserautomation.v1.SelectOptionCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 99: byte.v.forge.contracts.browserautomation.v1.SelectOptionCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 99: byte.v.forge.contracts.browserautomation.v1.SelectOptionCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 100: byte.v.forge.contracts.browserautomation.v1.SelectOptionCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
 	15,  // 101: byte.v.forge.contracts.browserautomation.v1.SubmitFormCommand.selector:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelector
-	85,  // 102: byte.v.forge.contracts.browserautomation.v1.SubmitFormCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 102: byte.v.forge.contracts.browserautomation.v1.SubmitFormCommand.timeout:type_name -> google.protobuf.Duration
 	16,  // 103: byte.v.forge.contracts.browserautomation.v1.SubmitFormCommand.selector_group:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSelectorGroup
-	86,  // 104: byte.v.forge.contracts.browserautomation.v1.EvaluateCommand.args:type_name -> google.protobuf.Struct
-	85,  // 105: byte.v.forge.contracts.browserautomation.v1.EvaluateCommand.timeout:type_name -> google.protobuf.Duration
-	85,  // 106: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.timeout:type_name -> google.protobuf.Duration
-	79,  // 107: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommand.LabelsEntry
+	88,  // 104: byte.v.forge.contracts.browserautomation.v1.EvaluateCommand.args:type_name -> google.protobuf.Struct
+	87,  // 105: byte.v.forge.contracts.browserautomation.v1.EvaluateCommand.timeout:type_name -> google.protobuf.Duration
+	87,  // 106: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.timeout:type_name -> google.protobuf.Duration
+	81,  // 107: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommand.LabelsEntry
 	19,  // 108: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.navigate:type_name -> byte.v.forge.contracts.browserautomation.v1.NavigateCommand
 	23,  // 109: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.click:type_name -> byte.v.forge.contracts.browserautomation.v1.ClickCommand
 	24,  // 110: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.fill:type_name -> byte.v.forge.contracts.browserautomation.v1.FillCommand
@@ -6620,86 +6758,88 @@ var file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_de
 	37,  // 139: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.scroll:type_name -> byte.v.forge.contracts.browserautomation.v1.ScrollCommand
 	43,  // 140: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.get_page_state:type_name -> byte.v.forge.contracts.browserautomation.v1.GetPageStateCommand
 	46,  // 141: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.count_elements:type_name -> byte.v.forge.contracts.browserautomation.v1.CountElementsCommand
-	4,   // 142: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandStatus
-	11,  // 143: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	87,  // 144: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.json_value:type_name -> google.protobuf.Value
-	14,  // 145: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.artifact:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
-	80,  // 146: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.attributes:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.AttributesEntry
-	18,  // 147: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.bounding_box:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserRect
-	84,  // 148: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.completed_at:type_name -> google.protobuf.Timestamp
-	2,   // 149: byte.v.forge.contracts.browserautomation.v1.BrowserSession.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSessionStatus
-	13,  // 150: byte.v.forge.contracts.browserautomation.v1.BrowserSession.profile:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile
-	11,  // 151: byte.v.forge.contracts.browserautomation.v1.BrowserSession.last_error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	14,  // 152: byte.v.forge.contracts.browserautomation.v1.BrowserSession.artifacts:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
-	81,  // 153: byte.v.forge.contracts.browserautomation.v1.BrowserSession.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession.LabelsEntry
-	84,  // 154: byte.v.forge.contracts.browserautomation.v1.BrowserSession.created_at:type_name -> google.protobuf.Timestamp
-	84,  // 155: byte.v.forge.contracts.browserautomation.v1.BrowserSession.started_at:type_name -> google.protobuf.Timestamp
-	84,  // 156: byte.v.forge.contracts.browserautomation.v1.BrowserSession.updated_at:type_name -> google.protobuf.Timestamp
-	84,  // 157: byte.v.forge.contracts.browserautomation.v1.BrowserSession.stopped_at:type_name -> google.protobuf.Timestamp
-	84,  // 158: byte.v.forge.contracts.browserautomation.v1.BrowserSession.expires_at:type_name -> google.protobuf.Timestamp
-	85,  // 159: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.timeout:type_name -> google.protobuf.Duration
-	53,  // 160: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.commands:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommand
-	82,  // 161: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.LabelsEntry
-	3,   // 162: byte.v.forge.contracts.browserautomation.v1.BrowserTask.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
-	56,  // 163: byte.v.forge.contracts.browserautomation.v1.BrowserTask.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
-	11,  // 164: byte.v.forge.contracts.browserautomation.v1.BrowserTask.last_error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	14,  // 165: byte.v.forge.contracts.browserautomation.v1.BrowserTask.artifacts:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
-	54,  // 166: byte.v.forge.contracts.browserautomation.v1.BrowserTask.results:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
-	83,  // 167: byte.v.forge.contracts.browserautomation.v1.BrowserTask.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask.LabelsEntry
-	84,  // 168: byte.v.forge.contracts.browserautomation.v1.BrowserTask.created_at:type_name -> google.protobuf.Timestamp
-	84,  // 169: byte.v.forge.contracts.browserautomation.v1.BrowserTask.started_at:type_name -> google.protobuf.Timestamp
-	84,  // 170: byte.v.forge.contracts.browserautomation.v1.BrowserTask.updated_at:type_name -> google.protobuf.Timestamp
-	84,  // 171: byte.v.forge.contracts.browserautomation.v1.BrowserTask.completed_at:type_name -> google.protobuf.Timestamp
-	3,   // 172: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
-	84,  // 173: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.created_after:type_name -> google.protobuf.Timestamp
-	84,  // 174: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.created_before:type_name -> google.protobuf.Timestamp
-	13,  // 175: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest.profile:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile
-	85,  // 176: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest.ttl:type_name -> google.protobuf.Duration
-	55,  // 177: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
-	11,  // 178: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	55,  // 179: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
-	11,  // 180: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	55,  // 181: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
-	11,  // 182: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	56,  // 183: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
-	57,  // 184: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
-	11,  // 185: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	56,  // 186: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
-	57,  // 187: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
-	54,  // 188: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.results:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
-	11,  // 189: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	57,  // 190: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
-	11,  // 191: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	58,  // 192: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest.filter:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter
-	57,  // 193: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse.tasks:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
-	11,  // 194: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
-	84,  // 195: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext.occurred_at:type_name -> google.protobuf.Timestamp
-	73,  // 196: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
-	55,  // 197: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
-	73,  // 198: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
-	2,   // 199: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSessionStatus
-	73,  // 200: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
-	3,   // 201: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.previous_status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
-	3,   // 202: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.current_status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
-	59,  // 203: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest
-	61,  // 204: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionRequest
-	63,  // 205: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StopBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionRequest
-	65,  // 206: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserTask:input_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest
-	67,  // 207: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ExecuteBrowserCommands:input_type -> byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest
-	69,  // 208: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserTask:input_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskRequest
-	71,  // 209: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ListBrowserTasks:input_type -> byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest
-	60,  // 210: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse
-	62,  // 211: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse
-	64,  // 212: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StopBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse
-	66,  // 213: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserTask:output_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse
-	68,  // 214: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ExecuteBrowserCommands:output_type -> byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse
-	70,  // 215: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserTask:output_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse
-	72,  // 216: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ListBrowserTasks:output_type -> byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse
-	210, // [210:217] is the sub-list for method output_type
-	203, // [203:210] is the sub-list for method input_type
-	203, // [203:203] is the sub-list for extension type_name
-	203, // [203:203] is the sub-list for extension extendee
-	0,   // [0:203] is the sub-list for field type_name
+	53,  // 142: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.get_cookies:type_name -> byte.v.forge.contracts.browserautomation.v1.GetCookiesCommand
+	54,  // 143: byte.v.forge.contracts.browserautomation.v1.BrowserCommand.get_storage_state:type_name -> byte.v.forge.contracts.browserautomation.v1.GetStorageStateCommand
+	4,   // 144: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandStatus
+	11,  // 145: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	89,  // 146: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.json_value:type_name -> google.protobuf.Value
+	14,  // 147: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.artifact:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
+	82,  // 148: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.attributes:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.AttributesEntry
+	18,  // 149: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.bounding_box:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserRect
+	86,  // 150: byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult.completed_at:type_name -> google.protobuf.Timestamp
+	2,   // 151: byte.v.forge.contracts.browserautomation.v1.BrowserSession.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSessionStatus
+	13,  // 152: byte.v.forge.contracts.browserautomation.v1.BrowserSession.profile:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile
+	11,  // 153: byte.v.forge.contracts.browserautomation.v1.BrowserSession.last_error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	14,  // 154: byte.v.forge.contracts.browserautomation.v1.BrowserSession.artifacts:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
+	83,  // 155: byte.v.forge.contracts.browserautomation.v1.BrowserSession.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession.LabelsEntry
+	86,  // 156: byte.v.forge.contracts.browserautomation.v1.BrowserSession.created_at:type_name -> google.protobuf.Timestamp
+	86,  // 157: byte.v.forge.contracts.browserautomation.v1.BrowserSession.started_at:type_name -> google.protobuf.Timestamp
+	86,  // 158: byte.v.forge.contracts.browserautomation.v1.BrowserSession.updated_at:type_name -> google.protobuf.Timestamp
+	86,  // 159: byte.v.forge.contracts.browserautomation.v1.BrowserSession.stopped_at:type_name -> google.protobuf.Timestamp
+	86,  // 160: byte.v.forge.contracts.browserautomation.v1.BrowserSession.expires_at:type_name -> google.protobuf.Timestamp
+	87,  // 161: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.timeout:type_name -> google.protobuf.Duration
+	55,  // 162: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.commands:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommand
+	84,  // 163: byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput.LabelsEntry
+	3,   // 164: byte.v.forge.contracts.browserautomation.v1.BrowserTask.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
+	58,  // 165: byte.v.forge.contracts.browserautomation.v1.BrowserTask.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
+	11,  // 166: byte.v.forge.contracts.browserautomation.v1.BrowserTask.last_error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	14,  // 167: byte.v.forge.contracts.browserautomation.v1.BrowserTask.artifacts:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserArtifact
+	56,  // 168: byte.v.forge.contracts.browserautomation.v1.BrowserTask.results:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
+	85,  // 169: byte.v.forge.contracts.browserautomation.v1.BrowserTask.labels:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask.LabelsEntry
+	86,  // 170: byte.v.forge.contracts.browserautomation.v1.BrowserTask.created_at:type_name -> google.protobuf.Timestamp
+	86,  // 171: byte.v.forge.contracts.browserautomation.v1.BrowserTask.started_at:type_name -> google.protobuf.Timestamp
+	86,  // 172: byte.v.forge.contracts.browserautomation.v1.BrowserTask.updated_at:type_name -> google.protobuf.Timestamp
+	86,  // 173: byte.v.forge.contracts.browserautomation.v1.BrowserTask.completed_at:type_name -> google.protobuf.Timestamp
+	3,   // 174: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
+	86,  // 175: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.created_after:type_name -> google.protobuf.Timestamp
+	86,  // 176: byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter.created_before:type_name -> google.protobuf.Timestamp
+	13,  // 177: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest.profile:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserProfile
+	87,  // 178: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest.ttl:type_name -> google.protobuf.Duration
+	57,  // 179: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
+	11,  // 180: byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	57,  // 181: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
+	11,  // 182: byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	57,  // 183: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
+	11,  // 184: byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	58,  // 185: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
+	59,  // 186: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
+	11,  // 187: byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	58,  // 188: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest.input:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskInput
+	59,  // 189: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
+	56,  // 190: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.results:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserCommandResult
+	11,  // 191: byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	59,  // 192: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse.task:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
+	11,  // 193: byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	60,  // 194: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest.filter:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskFilter
+	59,  // 195: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse.tasks:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTask
+	11,  // 196: byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse.error:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationError
+	86,  // 197: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext.occurred_at:type_name -> google.protobuf.Timestamp
+	75,  // 198: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
+	57,  // 199: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStartedEvent.session:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSession
+	75,  // 200: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
+	2,   // 201: byte.v.forge.contracts.browserautomation.v1.BrowserSessionStoppedEvent.status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserSessionStatus
+	75,  // 202: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.context:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserAutomationEventContext
+	3,   // 203: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.previous_status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
+	3,   // 204: byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatusChangedEvent.current_status:type_name -> byte.v.forge.contracts.browserautomation.v1.BrowserTaskStatus
+	61,  // 205: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionRequest
+	63,  // 206: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionRequest
+	65,  // 207: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StopBrowserSession:input_type -> byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionRequest
+	67,  // 208: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserTask:input_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskRequest
+	69,  // 209: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ExecuteBrowserCommands:input_type -> byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsRequest
+	71,  // 210: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserTask:input_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskRequest
+	73,  // 211: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ListBrowserTasks:input_type -> byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksRequest
+	62,  // 212: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserSessionResponse
+	64,  // 213: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserSessionResponse
+	66,  // 214: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StopBrowserSession:output_type -> byte.v.forge.contracts.browserautomation.v1.StopBrowserSessionResponse
+	68,  // 215: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.StartBrowserTask:output_type -> byte.v.forge.contracts.browserautomation.v1.StartBrowserTaskResponse
+	70,  // 216: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ExecuteBrowserCommands:output_type -> byte.v.forge.contracts.browserautomation.v1.ExecuteBrowserCommandsResponse
+	72,  // 217: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.GetBrowserTask:output_type -> byte.v.forge.contracts.browserautomation.v1.GetBrowserTaskResponse
+	74,  // 218: byte.v.forge.contracts.browserautomation.v1.BrowserAutomationService.ListBrowserTasks:output_type -> byte.v.forge.contracts.browserautomation.v1.ListBrowserTasksResponse
+	212, // [212:219] is the sub-list for method output_type
+	205, // [205:212] is the sub-list for method input_type
+	205, // [205:205] is the sub-list for extension type_name
+	205, // [205:205] is the sub-list for extension extendee
+	0,   // [0:205] is the sub-list for field type_name
 }
 
 func init() { file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_init() }
@@ -6707,7 +6847,7 @@ func file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_i
 	if File_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto != nil {
 		return
 	}
-	file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[42].OneofWrappers = []any{
+	file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_msgTypes[44].OneofWrappers = []any{
 		(*BrowserCommand_Navigate)(nil),
 		(*BrowserCommand_Click)(nil),
 		(*BrowserCommand_Fill)(nil),
@@ -6742,6 +6882,8 @@ func file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_i
 		(*BrowserCommand_Scroll)(nil),
 		(*BrowserCommand_GetPageState)(nil),
 		(*BrowserCommand_CountElements)(nil),
+		(*BrowserCommand_GetCookies)(nil),
+		(*BrowserCommand_GetStorageState)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -6749,7 +6891,7 @@ func file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_i
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDesc), len(file_byte_v_forge_contracts_browserautomation_v1_browser_automation_proto_rawDesc)),
 			NumEnums:      11,
-			NumMessages:   73,
+			NumMessages:   75,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

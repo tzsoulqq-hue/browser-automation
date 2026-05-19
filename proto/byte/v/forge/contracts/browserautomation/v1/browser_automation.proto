@@ -421,6 +421,15 @@ message EvaluateCommand {
   google.protobuf.Duration timeout = 3;
 }
 
+message GetCookiesCommand {
+  repeated string urls = 1;
+}
+
+message GetStorageStateCommand {
+  bool include_cookies = 1;
+  bool include_origins = 2;
+}
+
 message BrowserCommand {
   string command_id = 1;
   string command_key = 2;
@@ -463,6 +472,8 @@ message BrowserCommand {
     ScrollCommand scroll = 42;
     GetPageStateCommand get_page_state = 43;
     CountElementsCommand count_elements = 44;
+    GetCookiesCommand get_cookies = 45;
+    GetStorageStateCommand get_storage_state = 46;
   }
 }
 

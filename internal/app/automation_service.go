@@ -405,6 +405,8 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 				return core.NewError(core.CodeValidationFailed, "wait timeout duration is required", false)
 			}
 		case *browserautomationv1.BrowserCommand_GetPageState:
+		case *browserautomationv1.BrowserCommand_GetCookies:
+		case *browserautomationv1.BrowserCommand_GetStorageState:
 		case *browserautomationv1.BrowserCommand_ExtractText:
 			if !hasSelector(operation.ExtractText.GetSelector(), operation.ExtractText.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "extract selector is required", false)

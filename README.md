@@ -19,6 +19,7 @@
 - 内部契约：`proto/byte/v/forge/browserautomation/internal/v1/browser_automation_internal.proto`
 - 同步命令执行：`ExecuteBrowserCommands`，支持页面导航、加载等待、选择器等待、键盘输入、鼠标操作、表单交互、元素读取、截图、文件上传和脚本执行等 proto 化命令。
 - 命令 runtime 内置点击和输入 fallback，处理页面遮挡、动态重绘和输入框事件派发等通用浏览器细节。
+- 命令 runtime 提供 cookie 和 storage state 读取命令，用于账号注册、登录和会话材料捕获等业务流程。
 
 ## 职责
 
