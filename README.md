@@ -8,12 +8,14 @@
 
 - Go module：`github.com/byte-v-forge/browser-automation`
 - 公共契约 gRPC adapter：`internal/adapters/grpc`
+- 服务入口：`cmd/browser-automation-service`
 - 核心应用服务：`internal/app`
 - 领域模型和端口：`internal/core`
 - 内存 store：`internal/app`
 - PostgreSQL store：`internal/adapters/repository/postgres`
 - Camoufox runtime adapter：`internal/adapters/runtime/camoufox`
 - 数据迁移：`migrations/0001_browser_automation_store.sql`
+- 镜像入口：`Dockerfile`
 - 内部契约：`proto/byte/v/forge/browserautomation/internal/v1/browser_automation_internal.proto`
 - 同步命令执行：`ExecuteBrowserCommands`，支持页面导航、加载等待、选择器等待、键盘输入、鼠标操作、表单交互、元素读取、截图、文件上传和脚本执行等 proto 化命令。
 
@@ -38,10 +40,30 @@ sh scripts/generate-proto.sh
 
 ```sh
 GOPRIVATE=github.com/byte-v-forge/* GONOSUMDB=github.com/byte-v-forge/* go mod download
+go build ./...
 go vet ./...
 ```
 
 公开 Go 契约类型来自本仓 `gen/`。
+
+## 运行
+
+```sh
+BROWSER_AUTOMATION_POSTGRES_DSN='host=postgres user=nb_register password=nb_register dbname=nb_register port=5432 sslmode=disable' \
+BROWSER_AUTOMATION_APPLY_MIGRATIONS=true \
+browser-automation-service
+```
+
+常用配置：
+
+- `BROWSER_AUTOMATION_LISTEN_ADDR`：gRPC 监听地址，默认 `:50051`。
+- `BROWSER_AUTOMATION_POSTGRES_DSN`：session/task 持久化数据库。
+- `BROWSER_AUTOMATION_APPLY_MIGRATIONS`：启动时应用本仓迁移。
+- `BROWSER_AUTOMATION_MIGRATIONS_DIR`：迁移目录，默认 `migrations`。
+- `BROWSER_AUTOMATION_RUNTIME`：runtime 类型，当前值为 `camoufox`。
+- `BROWSER_AUTOMATION_ARTIFACTS_DIR`：截图等 artifact 输出目录。
+- `BROWSER_AUTOMATION_CAMOUFOX_HEADLESS`：Camoufox headless 模式。
+- `BROWSER_AUTOMATION_CAMOUFOX_TASK_TIMEOUT_SECONDS`：单个命令任务默认超时。
 
 ## 数据库
 
@@ -78,4 +100,4 @@ runtime, err := camoufox.NewRuntime(camoufox.Config{
 ## 后续建设
 
 - artifact 对象存储 adapter。
-- 进程入口、worker bootstrap 和生命周期事件发布。
+- 生命周期事件发布。
