@@ -51,7 +51,7 @@ go vet ./...
 ## 运行
 
 ```sh
-BROWSER_AUTOMATION_POSTGRES_DSN='host=postgres user=nb_register password=nb_register dbname=nb_register port=5432 sslmode=disable' \
+BROWSER_AUTOMATION_POSTGRES_DSN='host=postgres user=byte_v_forge password=byte_v_forge dbname=byte_v_forge port=5432 sslmode=disable' \
 BROWSER_AUTOMATION_APPLY_MIGRATIONS=true \
 browser-automation-service
 ```

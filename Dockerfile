@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o browser-automation-service ./cmd/browser-automation-service
 
-FROM nb-register-camoufox-base:latest
+FROM byte-v-forge-camoufox-base:latest
 
 WORKDIR /app
 COPY --from=builder /app/browser-automation-service /usr/local/bin/browser-automation-service
