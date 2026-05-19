@@ -117,7 +117,11 @@ func (r *Runtime) ExecuteTask(ctx context.Context, task *core.Task) (core.TaskEx
 }
 
 func (r *Runtime) startServer(ctx context.Context, session *core.Session) (string, *serverProcess, error) {
-	options, err := encodeOptions(serverOptions(r.cfg, session))
+	optionsMap, err := serverOptions(r.cfg, session)
+	if err != nil {
+		return "", nil, core.NewError(core.CodeProxyFailed, err.Error(), false)
+	}
+	options, err := encodeOptions(optionsMap)
 	if err != nil {
 		return "", nil, core.NewError(core.CodeInternal, err.Error(), false)
 	}

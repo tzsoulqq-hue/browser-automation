@@ -2,13 +2,15 @@ package camoufox
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
 	browserautomationv1 "github.com/byte-v-forge/browser-automation/gen/go/byte/v/forge/contracts/browserautomation/v1"
 )
 
-func serverOptions(cfg Config, session *browserautomationv1.BrowserSession) map[string]any {
+func serverOptions(cfg Config, session *browserautomationv1.BrowserSession) (map[string]any, error) {
 	profile := session.GetProfile()
 	labels := profile.GetLabels()
 	options := map[string]any{
@@ -32,7 +34,18 @@ func serverOptions(cfg Config, session *browserautomationv1.BrowserSession) map[
 	setBoolOption(options, labels, "camoufox.main_world_eval", "main_world_eval")
 	setBoolOption(options, labels, "camoufox.enable_cache", "enable_cache")
 	setBoolFloatOrStringOption(options, labels, "camoufox.humanize", "humanize")
-	return options
+	if proxyRef := strings.TrimSpace(profile.GetProxyRef()); proxyRef != "" {
+		proxyURL := strings.TrimSpace(cfg.ProxyRefs[proxyRef])
+		if proxyURL == "" {
+			return nil, fmt.Errorf("proxy_ref %q is not configured", proxyRef)
+		}
+		proxy, err := parseProxyOption(proxyURL)
+		if err != nil {
+			return nil, fmt.Errorf("proxy_ref %q is invalid: %w", proxyRef, err)
+		}
+		options["proxy"] = proxy
+	}
+	return options, nil
 }
 
 func workerOptions(endpoint string, cfg Config, session *browserautomationv1.BrowserSession) map[string]any {
@@ -73,6 +86,35 @@ func encodeOptions(options map[string]any) (string, error) {
 		return "", err
 	}
 	return string(payload), nil
+}
+
+func parseProxyOption(raw string) (map[string]string, error) {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return nil, err
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return nil, fmt.Errorf("proxy URL must include scheme and host")
+	}
+	if parsed.Hostname() == "" {
+		return nil, fmt.Errorf("proxy URL host is invalid")
+	}
+	if parsed.RawQuery != "" || parsed.Fragment != "" || (parsed.Path != "" && parsed.Path != "/") {
+		return nil, fmt.Errorf("proxy URL must not include path, query, or fragment")
+	}
+	proxy := map[string]string{
+		"server": parsed.Scheme + "://" + parsed.Host,
+	}
+	if parsed.User != nil {
+		username := parsed.User.Username()
+		if username != "" {
+			proxy["username"] = username
+		}
+		if password, ok := parsed.User.Password(); ok {
+			proxy["password"] = password
+		}
+	}
+	return proxy, nil
 }
 
 func setStringOption(options map[string]any, labels map[string]string, labelKey, optionKey string) {

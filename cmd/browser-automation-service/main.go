@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -62,6 +63,7 @@ type config struct {
 	CamoufoxServerPort      int
 	CamoufoxWSPathPrefix    string
 	CamoufoxExtraEnv        []string
+	CamoufoxProxyRefs       map[string]string
 }
 
 func main() {
@@ -144,6 +146,10 @@ func run() error {
 }
 
 func loadConfig() (config, error) {
+	proxyRefs, err := envStringMap("BROWSER_AUTOMATION_PROXY_REFS_JSON")
+	if err != nil {
+		return config{}, err
+	}
 	cfg := config{
 		ListenAddr:               envDefault("BROWSER_AUTOMATION_LISTEN_ADDR", defaultListenAddr),
 		PostgresDSN:              requiredEnv("BROWSER_AUTOMATION_POSTGRES_DSN"),
@@ -164,6 +170,7 @@ func loadConfig() (config, error) {
 		CamoufoxServerPort:      envInt("BROWSER_AUTOMATION_CAMOUFOX_SERVER_PORT", 0),
 		CamoufoxWSPathPrefix:    envDefault("BROWSER_AUTOMATION_CAMOUFOX_WS_PATH_PREFIX", defaultCamoufoxWSPathPrefix),
 		CamoufoxExtraEnv:        envList("BROWSER_AUTOMATION_CAMOUFOX_EXTRA_ENV"),
+		CamoufoxProxyRefs:       proxyRefs,
 	}
 	if strings.TrimSpace(cfg.PostgresDSN) == "" {
 		return cfg, fmt.Errorf("BROWSER_AUTOMATION_POSTGRES_DSN is required")
@@ -188,6 +195,7 @@ func newRuntime(cfg config) (*camoufox.Runtime, error) {
 		ServerPort:      cfg.CamoufoxServerPort,
 		WSPathPrefix:    cfg.CamoufoxWSPathPrefix,
 		ExtraEnv:        cfg.CamoufoxExtraEnv,
+		ProxyRefs:       cfg.CamoufoxProxyRefs,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("configure camoufox runtime: %w", err)
@@ -285,4 +293,28 @@ func envList(name string) []string {
 		}
 	}
 	return items
+}
+
+func envStringMap(name string) (map[string]string, error) {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return nil, nil
+	}
+	items := map[string]string{}
+	if err := json.Unmarshal([]byte(value), &items); err != nil {
+		return nil, fmt.Errorf("%s must be a JSON object with string values: %w", name, err)
+	}
+	normalized := make(map[string]string, len(items))
+	for key, item := range items {
+		key = strings.TrimSpace(key)
+		item = strings.TrimSpace(item)
+		if key == "" {
+			return nil, fmt.Errorf("%s contains an empty key", name)
+		}
+		if item == "" {
+			return nil, fmt.Errorf("%s contains an empty value for key %q", name, key)
+		}
+		normalized[key] = item
+	}
+	return normalized, nil
 }
