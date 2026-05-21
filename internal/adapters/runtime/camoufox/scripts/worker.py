@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +19,10 @@ ERROR_NAVIGATION_FAILED = "navigation_failed"
 ERROR_SCRIPT_FAILED = "script_failed"
 ERROR_TIMEOUT = "timeout"
 ERROR_UNSUPPORTED_OPERATION = "unsupported_operation"
+ACTIONABLE_CLICK_SELECTOR = (
+    "a,button,input[type=button],input[type=submit],input[type=reset],"
+    "[role=button],[role=link],[role=menuitem]"
+)
 
 
 class CommandFailure(Exception):
@@ -26,6 +31,94 @@ class CommandFailure(Exception):
         self.code = code
         self.message = message
         self.retryable = retryable
+
+
+class NetworkLog:
+    def __init__(self, page: Any):
+        self.page = page
+        self.events: List[Dict[str, Any]] = []
+        page.on("request", self.on_request)
+        page.on("response", self.on_response)
+        page.on("requestfinished", self.on_request_finished)
+        page.on("requestfailed", self.on_request_failed)
+
+    def on_request(self, request: Any) -> None:
+        event = {
+            "request_id": str(id(request)),
+            "url": sanitize_url(str(getattr(request, "url", ""))),
+            "_url": str(getattr(request, "url", "")),
+            "method": str(getattr(request, "method", "")).upper(),
+            "resource_type": str(getattr(request, "resource_type", "")),
+            "phase": "started",
+            "started_at_unix_ms": now_unix_ms(),
+        }
+        self.events.append(event)
+        del self.events[:-300]
+
+    def on_response(self, response: Any) -> None:
+        request = getattr(response, "request", None)
+        event = self.event_for_request(request)
+        if not event:
+            return
+        event["status_code"] = int(getattr(response, "status", 0) or 0)
+        event["response_at_unix_ms"] = now_unix_ms()
+
+    def on_request_finished(self, request: Any) -> None:
+        event = self.event_for_request(request)
+        if not event:
+            return
+        event["phase"] = "finished"
+        event["finished_at_unix_ms"] = now_unix_ms()
+        try:
+            response = request.response()
+            if response:
+                event["status_code"] = int(getattr(response, "status", 0) or 0)
+        except (PlaywrightError, PlaywrightTimeoutError):
+            pass
+
+    def on_request_failed(self, request: Any) -> None:
+        event = self.event_for_request(request)
+        if not event:
+            return
+        event["phase"] = "failed"
+        event["failed_at_unix_ms"] = now_unix_ms()
+        failure = getattr(request, "failure", None)
+        if failure:
+            event["failure"] = str(failure)
+
+    def event_for_request(self, request: Any) -> Optional[Dict[str, Any]]:
+        if request is None:
+            return None
+        request_id = str(id(request))
+        for event in reversed(self.events):
+            if event.get("request_id") == request_id:
+                return event
+        return None
+
+    def wait_for(self, request_filter: Dict[str, Any], require_response: bool, timeout_value: Any) -> Dict[str, Any]:
+        timeout = duration_ms(timeout_value)
+        if timeout is None:
+            timeout = 5000
+        deadline = time.monotonic() + timeout / 1000
+        while True:
+            event = self.first_matching(request_filter, require_response)
+            if event:
+                return public_network_event(event)
+            if time.monotonic() >= deadline:
+                raise CommandFailure(ERROR_TIMEOUT, "network request did not match", True)
+            self.page.wait_for_timeout(100)
+
+    def list(self, request_filter: Dict[str, Any], limit: int) -> List[Dict[str, Any]]:
+        matches = [public_network_event(event) for event in self.events if network_event_matches(event, request_filter, False)]
+        if limit > 0:
+            return matches[-limit:]
+        return matches
+
+    def first_matching(self, request_filter: Dict[str, Any], require_response: bool) -> Optional[Dict[str, Any]]:
+        for event in self.events:
+            if network_event_matches(event, request_filter, require_response):
+                return event
+        return None
 
 
 def main() -> None:
@@ -44,6 +137,7 @@ def main() -> None:
             if script:
                 context.add_init_script(script)
         page = context.new_page()
+        network_log = NetworkLog(page)
         write_json({"type": "ready"})
         try:
             for line in sys.stdin:
@@ -64,13 +158,13 @@ def main() -> None:
                         }
                     )
                     continue
-                write_json(execute_task(page, artifacts_dir, request["task"]))
+                write_json(execute_task(page, network_log, artifacts_dir, request["task"]))
         finally:
             context.close()
             browser.close()
 
 
-def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[str, Any]:
+def execute_task(page: Any, network_log: "NetworkLog", artifacts_dir: Path, task: Dict[str, Any]) -> Dict[str, Any]:
     task_id = task.get("task_id") or ""
     input_data = task.get("input") or {}
     commands = input_data.get("commands") or []
@@ -79,7 +173,7 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
 
     for command in commands:
         try:
-            result, artifact = execute_command(page, artifacts_dir, task_id, command)
+            result, artifact = execute_command(page, network_log, artifacts_dir, task_id, command)
             results.append(result)
             if artifact:
                 artifacts.append(artifact)
@@ -133,7 +227,7 @@ def execute_task(page: Any, artifacts_dir: Path, task: Dict[str, Any]) -> Dict[s
     return {"type": "task_result", "task_id": task_id, "results": results, "artifacts": artifacts}
 
 
-def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+def execute_command(page: Any, network_log: "NetworkLog", artifacts_dir: Path, task_id: str, command: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
     if "navigate" in command:
         payload = command["navigate"]
         kwargs = navigation_kwargs(payload, command)
@@ -157,7 +251,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
 
     if "click" in command:
         payload = command["click"]
-        locator = resolve_command_locator(page, payload)
+        locator = resolve_click_locator(page, payload)
         kwargs = timeout_kwargs(payload.get("timeout") or command.get("timeout"))
         click_count = payload.get("click_count")
         if click_count:
@@ -376,6 +470,8 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
             state["text"] = text
         if payload.get("include_html"):
             state["html"] = page.content()
+        state["inputs"] = collect_page_inputs(page)
+        state["actions"] = collect_page_actions(page)
         return succeeded_result(command, current_url=page.url, title=title, text=text, json_value=state), None
 
     if "get_cookies" in command:
@@ -395,6 +491,17 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         if not payload.get("include_origins", True):
             state["origins"] = []
         return succeeded_result(command, json_value=json_safe(state), current_url=page.url), None
+
+    if "wait_for_network_request" in command:
+        payload = command["wait_for_network_request"]
+        timeout = payload.get("timeout") or command.get("timeout")
+        request = network_log.wait_for(payload.get("filter") or {}, payload.get("require_response"), timeout)
+        return succeeded_result(command, json_value={"request": request}, current_url=page.url), None
+
+    if "get_network_requests" in command:
+        payload = command["get_network_requests"]
+        requests = network_log.list(payload.get("filter") or {}, int(payload.get("limit") or 0))
+        return succeeded_result(command, json_value={"requests": requests}, matched_count=len(requests), current_url=page.url), None
 
     if "extract_text" in command:
         payload = command["extract_text"]
@@ -481,16 +588,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         payload = command["select_option"]
         locator = resolve_command_locator(page, payload)
         kwargs = timeout_kwargs(payload.get("timeout") or command.get("timeout"))
-        selected_values: List[str] = []
-        values = payload.get("values") or []
-        labels = payload.get("labels") or []
-        indexes = payload.get("indexes") or []
-        if values:
-            selected_values.extend(locator.select_option(value=values, **kwargs))
-        if labels:
-            selected_values.extend(locator.select_option(label=labels, **kwargs))
-        if indexes:
-            selected_values.extend(locator.select_option(index=indexes, **kwargs))
+        selected_values = select_options(locator, payload.get("values") or [], payload.get("labels") or [], payload.get("indexes") or [], kwargs)
         return succeeded_result(command, json_value={"selected_values": selected_values}, current_url=page.url), None
 
     if "submit_form" in command:
@@ -513,7 +611,7 @@ def execute_command(page: Any, artifacts_dir: Path, task_id: str, command: Dict[
         payload = command["evaluate"]
         expression = required(payload, "expression")
         arg = payload.get("args")
-        value = page.evaluate(expression, arg)
+        value = evaluate_page(page, expression, arg)
         return succeeded_result(command, json_value=json_safe(value), current_url=page.url), None
 
     raise CommandFailure(ERROR_UNSUPPORTED_OPERATION, "unsupported command operation", False)
@@ -528,12 +626,7 @@ def has_command_locator(payload: Dict[str, Any]) -> bool:
 
 
 def click_locator(locator: Any, **kwargs: Any) -> None:
-    try:
-        locator.click(**kwargs)
-        return
-    except (PlaywrightError, PlaywrightTimeoutError):
-        pass
-    locator.first.evaluate("(el) => el.click()")
+    locator.first.click(**kwargs)
 
 
 def fill_locator(page: Any, locator: Any, value: str, timeout_value: Any) -> None:
@@ -572,11 +665,166 @@ def fill_locator(page: Any, locator: Any, value: str, timeout_value: Any) -> Non
     page.keyboard.type(value)
 
 
+def select_options(locator: Any, values: List[str], labels: List[str], indexes: List[int], kwargs: Dict[str, Any]) -> List[str]:
+    attempts: List[Tuple[str, Any]] = []
+    if values:
+        attempts.append(("value", values))
+        attempts.extend(("value", value) for value in values)
+    if labels:
+        attempts.append(("label", labels))
+        attempts.extend(("label", label) for label in labels)
+    if indexes:
+        attempts.append(("index", indexes))
+        attempts.extend(("index", index) for index in indexes)
+    last_error: Optional[Exception] = None
+    for kind, value in attempts:
+        try:
+            if kind == "value":
+                return list(locator.select_option(value=value, **kwargs))
+            if kind == "label":
+                return list(locator.select_option(label=value, **kwargs))
+            return list(locator.select_option(index=value, **kwargs))
+        except (PlaywrightError, PlaywrightTimeoutError) as exc:
+            last_error = exc
+    if last_error:
+        raise last_error
+    return []
+
+
+def evaluate_page(page: Any, expression: str, arg: Any) -> Any:
+    deadline = time.monotonic() + 15
+    last_error: Optional[Exception] = None
+    for attempt in range(3):
+        try:
+            return page.evaluate(expression, arg)
+        except (PlaywrightError, PlaywrightTimeoutError) as exc:
+            if not is_navigation_context_error(exc) or attempt == 2:
+                raise
+            last_error = exc
+            wait_ms = max(100, min(5000, int((deadline - time.monotonic()) * 1000)))
+            try:
+                page.wait_for_load_state("domcontentloaded", timeout=wait_ms)
+            except (PlaywrightError, PlaywrightTimeoutError):
+                pass
+            page.wait_for_timeout(500)
+    if last_error:
+        raise last_error
+    raise CommandFailure(ERROR_SCRIPT_FAILED, "evaluate did not return a result", True)
+
+
+def is_navigation_context_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "execution context was destroyed" in message or "most likely because of a navigation" in message
+
+
 def resolve_command_locator(page: Any, payload: Dict[str, Any]) -> Any:
     selector_group = payload.get("selector_group")
     if selector_group and selector_group.get("selectors"):
         return resolve_locator_group(page, selector_group)
     return resolve_locator(page, payload.get("selector"))
+
+
+def resolve_click_locator(page: Any, payload: Dict[str, Any]) -> Any:
+    selector_group = payload.get("selector_group")
+    if selector_group and selector_group.get("selectors"):
+        return resolve_click_locator_group(page, selector_group)
+    return resolve_click_locator_from_selector(page, payload.get("selector"))
+
+
+def resolve_click_locator_group(page: Any, selector_group: Dict[str, Any]) -> Any:
+    selectors = [selector for selector in selector_group.get("selectors") or [] if selector and selector.get("value")]
+    if not selectors:
+        raise CommandFailure(ERROR_VALIDATION_FAILED, "selector_group.selectors is required", False)
+    if selector_group.get("require_all"):
+        return resolve_locator_group(page, selector_group)
+    timeout = selector_group.get("timeout")
+    failures: List[str] = []
+    for selector in selectors:
+        try:
+            return resolve_click_locator_from_selector(page, with_default_timeout(selector, timeout))
+        except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
+            failures.append(str(exc))
+    raise CommandFailure(ERROR_TIMEOUT, "; ".join(failures) or "selector group did not match", True)
+
+
+def resolve_click_locator_from_selector(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
+    if selector and selector.get("kind") == "BROWSER_SELECTOR_KIND_TEXT":
+        return action_text_locator(page, selector)
+    return locator_for_selector(page, selector)
+
+
+def resolve_action_text_locator(page: Any, selector: Dict[str, Any]) -> Any:
+    locator = action_text_locator(page, selector)
+    timeout = duration_ms(selector.get("timeout"))
+    if timeout is not None:
+        locator.first.wait_for(timeout=timeout)
+    return locator
+
+
+def action_text_locator(page: Any, selector: Dict[str, Any]) -> Any:
+    value = required(selector, "value")
+    exact = bool(selector.get("exact"))
+    has_text: Any = re.compile(rf"^\s*{re.escape(value)}\s*$") if exact else value
+    return page.locator(ACTIONABLE_CLICK_SELECTOR).filter(has_text=has_text)
+
+
+def collect_page_inputs(page: Any) -> List[Dict[str, str]]:
+    return page.evaluate(
+        """() => {
+            const visible = (el) => {
+                const style = window.getComputedStyle(el);
+                const rect = el.getBoundingClientRect();
+                return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+            };
+            const compact = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+            return Array.from(document.querySelectorAll("input,textarea,select,[contenteditable='true'],[role='textbox'],[role='combobox']"))
+                .filter(visible)
+                .slice(0, 20)
+                .map((el) => {
+                    const item = {
+                        tag: el.tagName.toLowerCase(),
+                        type: compact(el.getAttribute("type")),
+                        name: compact(el.getAttribute("name")),
+                        id: compact(el.getAttribute("id")),
+                        placeholder: compact(el.getAttribute("placeholder")),
+                        ariaLabel: compact(el.getAttribute("aria-label")),
+                        autocomplete: compact(el.getAttribute("autocomplete")),
+                        role: compact(el.getAttribute("role")),
+                    };
+                    return Object.fromEntries(Object.entries(item).filter(([, value]) => value));
+                })
+                .filter((item) => Object.keys(item).length > 0);
+        }"""
+    )
+
+
+def collect_page_actions(page: Any) -> List[Dict[str, str]]:
+    return page.evaluate(
+        """() => {
+            const visible = (el) => {
+                const style = window.getComputedStyle(el);
+                const rect = el.getBoundingClientRect();
+                return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+            };
+            const compact = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+            const selector = "a,button,input[type=button],input[type=submit],input[type=reset],[role=button],[role=link],[role=menuitem]";
+            return Array.from(document.querySelectorAll(selector))
+                .filter(visible)
+                .slice(0, 40)
+                .map((el) => {
+                    const item = {
+                        tag: el.tagName.toLowerCase(),
+                        text: compact(el.innerText || el.textContent),
+                        ariaLabel: compact(el.getAttribute("aria-label")),
+                        title: compact(el.getAttribute("title")),
+                        type: compact(el.getAttribute("type")),
+                        role: compact(el.getAttribute("role")),
+                    };
+                    return Object.fromEntries(Object.entries(item).filter(([, value]) => value));
+                })
+                .filter((item) => Object.keys(item).length > 0);
+        }"""
+    )
 
 
 def resolve_named_locator(page: Any, payload: Dict[str, Any], selector_key: str, selector_group_key: str) -> Any:
@@ -612,12 +860,19 @@ def with_default_timeout(selector: Dict[str, Any], timeout: Any) -> Dict[str, An
 
 
 def resolve_locator(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
+    locator = locator_for_selector(page, selector)
+    timeout = duration_ms((selector or {}).get("timeout"))
+    if timeout is not None:
+        locator.first.wait_for(timeout=timeout)
+    return locator
+
+
+def locator_for_selector(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
     if not selector:
         raise CommandFailure(ERROR_VALIDATION_FAILED, "selector is required", False)
     value = required(selector, "value")
     kind = selector.get("kind") or "BROWSER_SELECTOR_KIND_CSS"
     exact = bool(selector.get("exact"))
-    timeout = duration_ms(selector.get("timeout"))
     if kind == "BROWSER_SELECTOR_KIND_TEXT":
         locator = page.get_by_text(value, exact=exact)
     elif kind == "BROWSER_SELECTOR_KIND_ROLE":
@@ -634,8 +889,6 @@ def resolve_locator(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
         locator = page.locator(value if value.startswith("xpath=") else f"xpath={value}")
     else:
         locator = page.locator(value)
-    if timeout is not None:
-        locator.first.wait_for(timeout=timeout)
     return locator
 
 
@@ -844,9 +1097,60 @@ def json_safe(value: Any) -> Any:
         return str(value)
 
 
+def network_event_matches(event: Dict[str, Any], request_filter: Dict[str, Any], require_response: bool) -> bool:
+    if require_response and event.get("phase") not in {"finished", "failed"}:
+        return False
+    url = str(event.get("_url") or event.get("url") or "")
+    url_substring = str(request_filter.get("url_substring") or "")
+    if url_substring and url_substring not in url:
+        return False
+    url_regex = str(request_filter.get("url_regex") or "")
+    if url_regex and not re.search(url_regex, url):
+        return False
+    method = str(request_filter.get("method") or "").upper()
+    if method and str(event.get("method") or "").upper() != method:
+        return False
+    resource_type = str(request_filter.get("resource_type") or "")
+    if resource_type and str(event.get("resource_type") or "") != resource_type:
+        return False
+    started_after = int(request_filter.get("started_after_unix_ms") or 0)
+    if started_after > 0 and int(event.get("started_at_unix_ms") or 0) < started_after:
+        return False
+    status_min = int(request_filter.get("status_code_min") or 0)
+    status_max = int(request_filter.get("status_code_max") or 0)
+    if status_min > 0 or status_max > 0:
+        status_code = int(event.get("status_code") or 0)
+        if status_code <= 0:
+            return False
+        if status_min > 0 and status_code < status_min:
+            return False
+        if status_max > 0 and status_code > status_max:
+            return False
+    return True
+
+
+def public_network_event(event: Dict[str, Any]) -> Dict[str, Any]:
+    return {key: value for key, value in event.items() if not key.startswith("_")}
+
+
+def sanitize_url(raw: str) -> str:
+    raw = raw.strip()
+    before, sep, _ = raw.partition("#")
+    if sep:
+        raw = before
+    before, sep, _ = raw.partition("?")
+    if sep:
+        raw = before
+    return raw
+
+
 def sanitize_filename(value: str) -> str:
     value = re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-")
     return value or "artifact"
+
+
+def now_unix_ms() -> int:
+    return int(time.time() * 1000)
 
 
 def now_rfc3339() -> str:

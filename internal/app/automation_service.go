@@ -296,6 +296,7 @@ func (s *AutomationService) expireSessionIfNeeded(ctx context.Context, session *
 	session.Status = browserautomationv1.BrowserSessionStatus_BROWSER_SESSION_STATUS_EXPIRED
 	session.UpdatedAt = timestamp(now)
 	session.StoppedAt = timestamp(now)
+	_ = s.runtime.StopSession(ctx, session, "browser session expired")
 	if err := s.store.UpdateSession(ctx, session); err != nil {
 		return nil, err
 	}
@@ -407,6 +408,14 @@ func validateCommands(commands []*browserautomationv1.BrowserCommand) error {
 		case *browserautomationv1.BrowserCommand_GetPageState:
 		case *browserautomationv1.BrowserCommand_GetCookies:
 		case *browserautomationv1.BrowserCommand_GetStorageState:
+		case *browserautomationv1.BrowserCommand_WaitForNetworkRequest:
+			if duration(operation.WaitForNetworkRequest.GetTimeout()) < 0 {
+				return core.NewError(core.CodeValidationFailed, "wait network request timeout cannot be negative", false)
+			}
+		case *browserautomationv1.BrowserCommand_GetNetworkRequests:
+			if operation.GetNetworkRequests.GetLimit() < 0 {
+				return core.NewError(core.CodeValidationFailed, "network request limit cannot be negative", false)
+			}
 		case *browserautomationv1.BrowserCommand_ExtractText:
 			if !hasSelector(operation.ExtractText.GetSelector(), operation.ExtractText.GetSelectorGroup()) {
 				return core.NewError(core.CodeValidationFailed, "extract selector is required", false)

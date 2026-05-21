@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	browserautomationv1 "github.com/byte-v-forge/browser-automation/gen/go/byte/v/forge/contracts/browserautomation/v1"
@@ -126,6 +127,7 @@ func (r *Runtime) startServer(ctx context.Context, session *core.Session) (strin
 		return "", nil, core.NewError(core.CodeInternal, err.Error(), false)
 	}
 	cmd := exec.Command(r.cfg.PythonPath, "-u", "-c", r.scripts.server)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Env = append(os.Environ(), r.cfg.ExtraEnv...)
 	cmd.Env = append(cmd.Env, "CAMOUFOX_SERVER_OPTIONS_JSON="+options)
 	stdout, err := cmd.StdoutPipe()
@@ -175,6 +177,7 @@ func (r *Runtime) startWorker(ctx context.Context, endpoint string, session *cor
 		return nil, core.NewError(core.CodeInternal, err.Error(), false)
 	}
 	cmd := exec.Command(r.cfg.PythonPath, "-u", "-c", r.scripts.worker)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Env = append(os.Environ(), r.cfg.ExtraEnv...)
 	cmd.Env = append(cmd.Env, "CAMOUFOX_WORKER_OPTIONS_JSON="+options)
 	stdin, err := cmd.StdinPipe()
@@ -438,14 +441,14 @@ func stopCommand(cmd *exec.Cmd, done <-chan error, timeout time.Duration) error 
 		return ignoreFinished(err)
 	default:
 	}
-	_ = cmd.Process.Signal(os.Interrupt)
+	signalProcessGroup(cmd, syscall.SIGINT)
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 	select {
 	case err := <-done:
 		return ignoreFinished(err)
 	case <-timer.C:
-		_ = cmd.Process.Kill()
+		signalProcessGroup(cmd, syscall.SIGKILL)
 		select {
 		case err := <-done:
 			return ignoreFinished(err)
@@ -453,6 +456,24 @@ func stopCommand(cmd *exec.Cmd, done <-chan error, timeout time.Duration) error 
 			return core.NewError(core.CodeBrowserUnavailable, "process did not exit after kill", true)
 		}
 	}
+}
+
+func signalProcessGroup(cmd *exec.Cmd, signal syscall.Signal) {
+	if cmd == nil || cmd.Process == nil {
+		return
+	}
+	pid := cmd.Process.Pid
+	if pid <= 0 {
+		return
+	}
+	if err := syscall.Kill(-pid, signal); err == nil {
+		return
+	}
+	if signal == syscall.SIGINT {
+		_ = cmd.Process.Signal(os.Interrupt)
+		return
+	}
+	_ = cmd.Process.Kill()
 }
 
 func ignoreFinished(err error) error {

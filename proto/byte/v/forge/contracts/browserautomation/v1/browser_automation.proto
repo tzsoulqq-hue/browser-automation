@@ -432,6 +432,27 @@ message GetStorageStateCommand {
   bool include_origins = 2;
 }
 
+message BrowserNetworkRequestFilter {
+  string url_substring = 1;
+  string url_regex = 2;
+  string method = 3;
+  string resource_type = 4;
+  int32 status_code_min = 5;
+  int32 status_code_max = 6;
+  int64 started_after_unix_ms = 7;
+}
+
+message WaitForNetworkRequestCommand {
+  BrowserNetworkRequestFilter filter = 1;
+  google.protobuf.Duration timeout = 2;
+  bool require_response = 3;
+}
+
+message GetNetworkRequestsCommand {
+  BrowserNetworkRequestFilter filter = 1;
+  int32 limit = 2;
+}
+
 message BrowserCommand {
   string command_id = 1;
   string command_key = 2;
@@ -476,6 +497,8 @@ message BrowserCommand {
     CountElementsCommand count_elements = 44;
     GetCookiesCommand get_cookies = 45;
     GetStorageStateCommand get_storage_state = 46;
+    WaitForNetworkRequestCommand wait_for_network_request = 47;
+    GetNetworkRequestsCommand get_network_requests = 48;
   }
 }
 
