@@ -6,7 +6,7 @@ import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -459,19 +459,7 @@ def execute_command(page: Any, network_log: "NetworkLog", artifacts_dir: Path, t
 
     if "get_page_state" in command:
         payload = command["get_page_state"]
-        state: Dict[str, Any] = {"url": page.url}
-        title: Optional[str] = None
-        text: Optional[str] = None
-        if payload.get("include_title"):
-            title = page.title()
-            state["title"] = title
-        if payload.get("include_text"):
-            text = page.locator("body").inner_text()
-            state["text"] = text
-        if payload.get("include_html"):
-            state["html"] = page.content()
-        state["inputs"] = collect_page_inputs(page)
-        state["actions"] = collect_page_actions(page)
+        state, title, text = collect_page_state(page, payload)
         return succeeded_result(command, current_url=page.url, title=title, text=text, json_value=state), None
 
     if "get_cookies" in command:
@@ -691,25 +679,36 @@ def select_options(locator: Any, values: List[str], labels: List[str], indexes: 
     return []
 
 
-def evaluate_page(page: Any, expression: str, arg: Any) -> Any:
+def with_navigation_retry(page: Any, action: Callable[[], Any]) -> Any:
     deadline = time.monotonic() + 15
     last_error: Optional[Exception] = None
     for attempt in range(3):
         try:
-            return page.evaluate(expression, arg)
+            return action()
         except (PlaywrightError, PlaywrightTimeoutError) as exc:
             if not is_navigation_context_error(exc) or attempt == 2:
                 raise
             last_error = exc
-            wait_ms = max(100, min(5000, int((deadline - time.monotonic()) * 1000)))
-            try:
-                page.wait_for_load_state("domcontentloaded", timeout=wait_ms)
-            except (PlaywrightError, PlaywrightTimeoutError):
-                pass
-            page.wait_for_timeout(500)
+            wait_for_navigation_settle(page, deadline)
     if last_error:
         raise last_error
-    raise CommandFailure(ERROR_SCRIPT_FAILED, "evaluate did not return a result", True)
+    raise CommandFailure(ERROR_BROWSER_UNAVAILABLE, "browser action did not return a result", True)
+
+
+def wait_for_navigation_settle(page: Any, deadline: float) -> None:
+    wait_ms = max(100, min(5000, int((deadline - time.monotonic()) * 1000)))
+    try:
+        page.wait_for_load_state("domcontentloaded", timeout=wait_ms)
+    except (PlaywrightError, PlaywrightTimeoutError):
+        pass
+    try:
+        page.wait_for_timeout(500)
+    except (PlaywrightError, PlaywrightTimeoutError):
+        pass
+
+
+def evaluate_page(page: Any, expression: str, arg: Any) -> Any:
+    return with_navigation_retry(page, lambda: page.evaluate(expression, arg))
 
 
 def is_navigation_context_error(exc: Exception) -> bool:
@@ -768,8 +767,28 @@ def action_text_locator(page: Any, selector: Dict[str, Any]) -> Any:
     return page.locator(ACTIONABLE_CLICK_SELECTOR).filter(has_text=has_text)
 
 
+def collect_page_state(page: Any, payload: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[str], Optional[str]]:
+    def read_state() -> Tuple[Dict[str, Any], Optional[str], Optional[str]]:
+        state: Dict[str, Any] = {"url": page.url}
+        title: Optional[str] = None
+        text: Optional[str] = None
+        if payload.get("include_title"):
+            title = page.title()
+            state["title"] = title
+        if payload.get("include_text"):
+            text = page.locator("body").inner_text()
+            state["text"] = text
+        if payload.get("include_html"):
+            state["html"] = page.content()
+        state["inputs"] = collect_page_inputs(page)
+        state["actions"] = collect_page_actions(page)
+        return state, title, text
+
+    return with_navigation_retry(page, read_state)
+
+
 def collect_page_inputs(page: Any) -> List[Dict[str, str]]:
-    return page.evaluate(
+    return with_navigation_retry(page, lambda: page.evaluate(
         """() => {
             const visible = (el) => {
                 const style = window.getComputedStyle(el);
@@ -795,11 +814,11 @@ def collect_page_inputs(page: Any) -> List[Dict[str, str]]:
                 })
                 .filter((item) => Object.keys(item).length > 0);
         }"""
-    )
+    ))
 
 
 def collect_page_actions(page: Any) -> List[Dict[str, str]]:
-    return page.evaluate(
+    return with_navigation_retry(page, lambda: page.evaluate(
         """() => {
             const visible = (el) => {
                 const style = window.getComputedStyle(el);
@@ -824,7 +843,7 @@ def collect_page_actions(page: Any) -> List[Dict[str, str]]:
                 })
                 .filter((item) => Object.keys(item).length > 0);
         }"""
-    )
+    ))
 
 
 def resolve_named_locator(page: Any, payload: Dict[str, Any], selector_key: str, selector_group_key: str) -> Any:
