@@ -736,14 +736,12 @@ def resolve_click_locator_group(page: Any, selector_group: Dict[str, Any]) -> An
         raise CommandFailure(ERROR_VALIDATION_FAILED, "selector_group.selectors is required", False)
     if selector_group.get("require_all"):
         return resolve_locator_group(page, selector_group)
-    timeout = selector_group.get("timeout")
-    failures: List[str] = []
-    for selector in selectors:
-        try:
-            return resolve_click_locator_from_selector(page, with_default_timeout(selector, timeout))
-        except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
-            failures.append(str(exc))
-    raise CommandFailure(ERROR_TIMEOUT, "; ".join(failures) or "selector group did not match", True)
+    return resolve_first_visible_locator(
+        page,
+        selectors,
+        selector_group.get("timeout"),
+        resolve_click_locator_from_selector,
+    )
 
 
 def resolve_click_locator_from_selector(page: Any, selector: Optional[Dict[str, Any]]) -> Any:
@@ -861,13 +859,36 @@ def resolve_locator_group(page: Any, selector_group: Dict[str, Any]) -> Any:
     if selector_group.get("require_all"):
         locators = [resolve_locator(page, with_default_timeout(selector, timeout)) for selector in selectors]
         return locators[0]
+    return resolve_first_visible_locator(page, selectors, timeout, locator_for_selector)
+
+
+def resolve_first_visible_locator(
+    page: Any,
+    selectors: List[Dict[str, Any]],
+    timeout: Any,
+    resolver: Callable[[Any, Optional[Dict[str, Any]]], Any],
+) -> Any:
+    timeout_ms = duration_ms(timeout)
+    deadline = time.monotonic() + timeout_ms / 1000 if timeout_ms is not None else time.monotonic()
     failures: List[str] = []
-    for selector in selectors:
-        try:
-            return resolve_locator(page, with_default_timeout(selector, timeout))
-        except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
-            failures.append(str(exc))
-    raise CommandFailure(ERROR_TIMEOUT, "; ".join(failures) or "selector group did not match", True)
+    attached_candidate: Any = None
+    while True:
+        for selector in selectors:
+            try:
+                locator = resolver(page, selector)
+                if locator.first.is_visible(timeout=50):
+                    return locator
+                if attached_candidate is None and locator.count() > 0:
+                    attached_candidate = locator
+            except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
+                failures.append(str(exc))
+        if timeout_ms is None or time.monotonic() >= deadline:
+            break
+        remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
+        page.wait_for_timeout(min(100, remaining_ms))
+    if attached_candidate is not None:
+        return attached_candidate
+    raise CommandFailure(ERROR_TIMEOUT, "; ".join(failures[-len(selectors):]) or "selector group did not match", True)
 
 
 def with_default_timeout(selector: Dict[str, Any], timeout: Any) -> Dict[str, Any]:
