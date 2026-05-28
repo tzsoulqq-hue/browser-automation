@@ -1,5 +1,7 @@
 import json
+import math
 import os
+import random
 import re
 import sys
 import time
@@ -129,10 +131,12 @@ def main() -> None:
     artifacts_dir.mkdir(parents=True, exist_ok=True)
     context_options = options.get("context_options") or {}
     init_scripts = options.get("init_scripts") or []
+    labels = options.get("labels") or {}
 
     with sync_playwright() as playwright:
         browser = playwright.firefox.connect(endpoint)
         context = browser.new_context(**context_options)
+        configure_request_blocking(context, labels)
         for script in init_scripts:
             if script:
                 context.add_init_script(script)
@@ -270,10 +274,7 @@ def execute_command(page: Any, network_log: "NetworkLog", artifacts_dir: Path, t
         hold_duration = duration_ms(payload.get("hold_duration"))
         if hold_duration is not None and hold_duration > 0:
             x, y = locator_point(locator, position, payload.get("timeout") or command.get("timeout"))
-            page.mouse.move(x, y)
-            page.mouse.down(button=button or "left")
-            page.wait_for_timeout(hold_duration)
-            page.mouse.up(button=button or "left")
+            human_mouse_hold(page, x, y, hold_duration, button or "left")
             return succeeded_result(command, current_url=page.url), None
         click_locator(locator, **kwargs)
         return succeeded_result(command, current_url=page.url), None
@@ -366,10 +367,7 @@ def execute_command(page: Any, network_log: "NetworkLog", artifacts_dir: Path, t
         button = mouse_button_value(payload.get("button")) or "left"
         hold_duration = duration_ms(payload.get("hold_duration"))
         if hold_duration is not None and hold_duration > 0:
-            page.mouse.move(point["x"], point["y"])
-            page.mouse.down(button=button)
-            page.wait_for_timeout(hold_duration)
-            page.mouse.up(button=button)
+            human_mouse_hold(page, point["x"], point["y"], hold_duration, button)
         else:
             kwargs: Dict[str, Any] = {"button": button}
             click_count = payload.get("click_count")
@@ -615,6 +613,68 @@ def has_command_locator(payload: Dict[str, Any]) -> bool:
 
 def click_locator(locator: Any, **kwargs: Any) -> None:
     locator.first.click(**kwargs)
+
+
+def configure_request_blocking(context: Any, labels: Dict[str, str]) -> None:
+    if not bool_label(labels.get("camoufox.block_resources")):
+        return
+    raw_types = str(labels.get("camoufox.block_resource_types") or "image,font,media")
+    blocked_types = {item.strip().lower() for item in raw_types.split(",") if item.strip()}
+    raw_patterns = str(
+        labels.get("camoufox.block_url_patterns")
+        or "gvt1.com,edgedl.me.gvt1.com,google-analytics.com,googletagmanager.com,"
+        "clarity.ms,bat.bing.com,events.data.microsoft.com,arc.msn.com,collector.azure.com"
+    )
+    blocked_patterns = tuple(item.strip().lower() for item in raw_patterns.split(",") if item.strip())
+
+    def handle_route(route: Any, request: Any) -> None:
+        try:
+            resource_type = str(getattr(request, "resource_type", "") or "").lower()
+            url = str(getattr(request, "url", "") or "").lower()
+            if resource_type in blocked_types or any(pattern in url for pattern in blocked_patterns):
+                route.abort()
+                return
+        except Exception:
+            pass
+        route.continue_()
+
+    context.route("**/*", handle_route)
+
+
+def bool_label(value: Any) -> bool:
+    return str(value or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def human_mouse_hold(page: Any, x: float, y: float, hold_ms: int, button: str = "left") -> None:
+    tx = x + random.uniform(-5, 5)
+    ty = y + random.uniform(-5, 5)
+    sx = tx + random.uniform(-120, 120)
+    sy = ty + random.uniform(-80, 80)
+    page.mouse.move(sx, sy)
+    page.wait_for_timeout(random.randint(80, 240))
+    distance = math.hypot(tx - sx, ty - sy)
+    steps = max(14, min(48, int(distance / 8)))
+    cx1 = sx + (tx - sx) * random.uniform(0.15, 0.4) + random.uniform(-25, 25)
+    cy1 = sy + (ty - sy) * random.uniform(0.0, 0.3) + random.uniform(-25, 25)
+    cx2 = sx + (tx - sx) * random.uniform(0.6, 0.85) + random.uniform(-12, 12)
+    cy2 = sy + (ty - sy) * random.uniform(0.7, 1.0) + random.uniform(-12, 12)
+    for i in range(steps + 1):
+        t = i / steps
+        u = 1 - t
+        px = u**3 * sx + 3 * u**2 * t * cx1 + 3 * u * t**2 * cx2 + t**3 * tx
+        py = u**3 * sy + 3 * u**2 * t * cy1 + 3 * u * t**2 * cy2 + t**3 * ty
+        page.mouse.move(px, py)
+        page.wait_for_timeout(random.randint(4, 18))
+    page.wait_for_timeout(random.randint(40, 130))
+    page.mouse.down(button=button)
+    remaining = max(500, hold_ms + random.randint(-250, 650))
+    elapsed = 0
+    while elapsed < remaining:
+        chunk = min(random.randint(250, 700), remaining - elapsed)
+        page.wait_for_timeout(chunk)
+        elapsed += chunk
+        page.mouse.move(tx + random.uniform(-2, 2), ty + random.uniform(-2, 2))
+    page.mouse.up(button=button)
 
 
 def fill_locator(page: Any, locator: Any, value: str, timeout_value: Any) -> None:
@@ -873,15 +933,21 @@ def resolve_first_visible_locator(
     failures: List[str] = []
     attached_candidate: Any = None
     while True:
-        for selector in selectors:
-            try:
-                locator = resolver(page, selector)
-                if locator.first.is_visible(timeout=50):
-                    return locator
-                if attached_candidate is None and locator.count() > 0:
-                    attached_candidate = locator
-            except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
-                failures.append(str(exc))
+        targets = [page]
+        try:
+            targets.extend([frame for frame in page.frames if frame is not page.main_frame])
+        except Exception:
+            pass
+        for target in targets:
+            for selector in selectors:
+                try:
+                    locator = resolver(target, selector)
+                    if locator.first.is_visible(timeout=50):
+                        return locator
+                    if attached_candidate is None and locator.count() > 0:
+                        attached_candidate = locator
+                except (CommandFailure, PlaywrightError, PlaywrightTimeoutError) as exc:
+                    failures.append(str(exc))
         if timeout_ms is None or time.monotonic() >= deadline:
             break
         remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))

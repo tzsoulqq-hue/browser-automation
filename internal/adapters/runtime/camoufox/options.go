@@ -77,6 +77,7 @@ func workerOptions(endpoint string, cfg Config, session *browserautomationv1.Bro
 		"artifacts_dir":   cfg.ArtifactsDir,
 		"context_options": contextOptions,
 		"init_scripts":    profile.GetInitScripts(),
+		"labels":          profile.GetLabels(),
 	}
 }
 
